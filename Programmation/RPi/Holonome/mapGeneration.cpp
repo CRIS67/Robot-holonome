@@ -54,5 +54,5 @@ void clearMap(std::vector<std::vector<int>>& mapVector){
             mapVector[i][j] = 0;
         }
     }
-    obstaclesCoord.clear();
+
 }
