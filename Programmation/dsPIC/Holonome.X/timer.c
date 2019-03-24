@@ -8,17 +8,25 @@
 #include "timer.h"
 
 // <editor-fold defaultstate="collapsed" desc="Variables">
-extern volatile double x;
-extern volatile double y;
-extern volatile double theta;
+extern volatile long double x;
+extern volatile long double y;
+extern volatile long double theta;
 
-extern double xc;
-extern double yc;
-extern double thetac;
+extern volatile long double xc;
+extern volatile long double yc;
+extern volatile long double thetac;
 
-extern double xf;
-extern double yf;
-extern double tf;
+extern volatile long double xf;
+extern volatile long double yf;
+extern volatile long double tf;
+
+volatile long double kahanX = 0;
+volatile long double kahanY = 0;
+volatile long double kahanT = 0;
+
+extern volatile long double kahanErrorX;
+extern volatile long double kahanErrorY;
+extern volatile long double kahanErrorT;
 
 extern uint8_t finalPoint;
 
@@ -72,7 +80,13 @@ unsigned char timer2Overflow = 0;
 
 long double coef_dissymmetry = COEF_DISSYMETRY;
 long double mm_per_ticks = MM_PER_TICKS;
+long double rad_per_ticks = RAD_PER_TICKS;
 long double distance_between_encoder_wheels = DISTANCE_BETWEEN_ENCODER_WHEELS;
+
+volatile uint8_t nearPointDistance = 0;
+volatile uint8_t nearPointAngle = 0;
+
+volatile uint16_t nplot = 0;
 
 // <editor-fold defaultstate="collapsed" desc="Trajectory generation">
 unsigned char statePathGeneration;
@@ -252,9 +266,13 @@ void __attribute__((interrupt, no_auto_psv)) _T1Interrupt(void) {
         
         sendMotor((double)c0,(double)c1,(double)c2);
         //plot(2,(uint32_t)((int32_t)(s0)));
-        plot(2,(uint32_t)((int32_t)(s0*1000)));
-        plot(3,(uint32_t)((int32_t)(s1*1000)));
-        plot(4,(uint32_t)((int32_t)(s2*1000)));
+        plot(10,(uint32_t)((int32_t)(pidSpeed0.setPoint)));
+        plot(20,(uint32_t)((int32_t)(pidSpeed1.setPoint)));
+        plot(30,(uint32_t)((int32_t)(pidSpeed2.setPoint)));
+        
+        plot(11,(uint32_t)((int32_t)(s0*1000)));
+        plot(21,(uint32_t)((int32_t)(s1*1000)));
+        plot(31,(uint32_t)((int32_t)(s2*1000)));
         //sendLog("a\n");
     }  
 }
@@ -266,6 +284,7 @@ void __attribute__((interrupt, no_auto_psv)) _T3Interrupt(void) {
     IFS0bits.T3IF = 0; //Clear Timer1 interrupt flag
     timer2Overflow++;
 }
+
 void __attribute__((interrupt, no_auto_psv)) _T5Interrupt(void) {// _T3Interrupt(void){
     IFS1bits.T5IF = 0;
     T5CONbits.TON = 0; //disable Timer3
@@ -278,6 +297,7 @@ void __attribute__((interrupt, no_auto_psv)) _T5Interrupt(void) {// _T3Interrupt
     TRIG_US_5 = 0;
 }
 // </editor-fold>
+
 
 unsigned long micros(){
     IEC0bits.T3IE = 0;
@@ -317,8 +337,8 @@ void delay_ms(uint32_t delay){
     while(millis() - tick < delay);
 }
 
-//void __attribute__((interrupt, no_auto_psv)) save_T1Interrupt(void) {
-void save_T1Interrupt(void) {
+//void __attribute__((interrupt, no_auto_psv)) _T1Interrupt(void) {
+void  save_T1Interrupt(void) {
     IFS0bits.T1IF = 0; //Clear Timer1 interrupt flag
     // <editor-fold defaultstate="collapsed" desc="Calcul position ">
     
@@ -329,21 +349,68 @@ void save_T1Interrupt(void) {
     POS1CNTL = 0x0000;
     POS2CNTL = 0x0000;
     
+    /*test Kahan*/
+    /*ticksL = 10;
+    ticksR = 10;*/
+    
     speedLSum += ticksL;
     speedRSum += ticksR;
     
-    long double deltaDL = ticksL;
+    long double deltaDL = ticksL * coef_dissymmetry;
     long double deltaDR = ticksR;
     
-    deltaDL = deltaDL * mm_per_ticks * coef_dissymmetry;   //Ticks -> mm
-    deltaDR = deltaDR * mm_per_ticks;
+    /*deltaDL = deltaDL * mm_per_ticks * coef_dissymmetry;   //Ticks -> mm
+    deltaDR = deltaDR * mm_per_ticks;*/
     
-    long double deltaD = (deltaDL + deltaDR) / 2;
+    long double deltaD = (deltaDL + deltaDR) * mm_per_ticks / 2;
+    //long double deltaT = (deltaDR - deltaDL) / distance_between_encoder_wheels;
+    long double deltaT = (deltaDR - deltaDL) * rad_per_ticks;
+
+    theta += deltaT;
+    x += deltaD * cosl(theta);
+    y += deltaD * sinl(theta);
+    /*test Kahan*/
+    //deltaD = 1;
+    //deltaT = 0.002;
     
-    theta += (deltaDR - deltaDL) / distance_between_encoder_wheels;
+    // <editor-fold defaultstate="collapsed" desc="Kahan summation algorithm">
+    /*long double yT = deltaT - kahanT;
+    long double tT = theta + yT;
+    kahanT = (tT - theta) - yT;
+    theta = tT;
+
+    //theta += deltaT;
+    long double deltaX = deltaD * cosl(theta);
+    long double deltaY = deltaD * sinl(theta);
     
-    x += deltaD * cos(theta);
-    y += deltaD * sin(theta);
+    long double yX = deltaX - kahanX;
+    long double tX = x + yX;
+    kahanX = (tX - x) - yX;
+    x = tX;
+    
+    long double yY = deltaY - kahanY;
+    long double tY = y + yY;
+    kahanY = (tY - y) - yY;
+    y = tY;*/
+    
+    /*long double absError = kahanX;
+    if(absError < 0)
+        absError = -absError;
+    kahanErrorX += absError;
+    
+    absError = kahanY;
+    if(absError < 0)
+        absError = -absError;
+    kahanErrorY += absError;
+    
+    absError = kahanT;
+    if(absError < 0)
+        absError = -absError;
+    kahanErrorT += absError;*/
+    
+    //x += deltaD * cos(theta);
+    //y += deltaD * sin(theta);
+    // </editor-fold>
     // </editor-fold>
 
     // <editor-fold defaultstate="collapsed" desc="Asservissement">
@@ -372,20 +439,20 @@ void save_T1Interrupt(void) {
         double thetaRobotPointFinal = atan2(yf - y, xf - x);
         if (back)
             thetaRobotPointFinal -= PI;
-        while (thetaRobotPointFinal - theta < -PI)
+        while (thetaRobotPointFinal - (double)theta < -PI)
             thetaRobotPointFinal += 2 * PI;
-        while (thetaRobotPointFinal - theta > PI)
+        while (thetaRobotPointFinal - (double)theta > PI)
             thetaRobotPointFinal -= 2 * PI;
-        if (thetaRobotPointFinal - theta < -PI / 2)
+        if (thetaRobotPointFinal - (double)theta < -PI / 2)
             thetaRobotPointFinal += PI;
-        if (thetaRobotPointFinal - theta > PI / 2)
+        if (thetaRobotPointFinal - (double)theta > PI / 2)
             thetaRobotPointFinal -= PI;
         double distFinal = sqrt((x - xf)*(x - xf) + (y - yf)*(y - yf));
 
         double errorD = sqrt((x - xc)*(x - xc) + (y - yc)*(y - yc));
 
         // <editor-fold defaultstate="collapsed" desc="gestion marche arrière">
-        double thetaDiff = theta - thetaRobotPoint;
+        double thetaDiff = (double)theta - thetaRobotPoint;
         while (thetaDiff > PI) {
             thetaDiff -= 2 * PI;
         }
@@ -404,20 +471,42 @@ void save_T1Interrupt(void) {
         //setSetPoint(&pidAngle,thetac);
 
         double rD = compute(&pidDistance, errorD);
-        double rA = compute(&pidAngle, theta);
+        double rA = compute(&pidAngle, (double)theta);
 
-        if (pidDistance.prevError < MAX_ERROR_D && pidDistance.prevError > -MAX_ERROR_D && distFinal < MAX_ERROR_D && (finalPoint == 1)) {
+        /*if (pidDistance.prevError < MAX_ERROR_D && pidDistance.prevError > -MAX_ERROR_D && distFinal < MAX_ERROR_D && (finalPoint == 1)) {
             rD = 0;
+        }*/
+        
+        // "hystheresis"
+        if(distFinal < MAX_ERROR_D_INF){
+            nearPointDistance = 1;
         }
+        else if(distFinal > MAX_ERROR_D_SUP){
+            nearPointDistance = 0;
+        }
+        if(pidAngle.prevError < MAX_ERROR_A_INF && pidAngle.prevError > -MAX_ERROR_A_INF){
+            nearPointAngle = 1;
+        }
+        else if(pidAngle.prevError > MAX_ERROR_A_SUP && pidAngle.prevError < -MAX_ERROR_A_SUP){
+            nearPointAngle = 0;
+        }
+        if(nearPointDistance && finalPoint){
+            rD = 0;
+            if(nearPointAngle){
+                rA = 0;
+            }
+        }
+        
+        
         /*if(pidAngle.prevError < MAX_ERROR_A && pidAngle.prevError > -MAX_ERROR_A){
             rA = 0;
         }*/
 
-        //setSetPoint(&pidSpeedLeft, rD - rA);
-        //setSetPoint(&pidSpeedRight, rD + rA);
+        setSetPoint(&pidSpeedLeft, rD - rA);
+        setSetPoint(&pidSpeedRight, rD + rA);
 
-        setSetPoint(&pidSpeedLeft, xc);
-        setSetPoint(&pidSpeedRight, xc);
+        /*setSetPoint(&pidSpeedLeft, xc);
+        setSetPoint(&pidSpeedRight, xc);*/
         
         double commandeL = compute(&pidSpeedLeft, speedL);
         double commandeR = compute(&pidSpeedRight, speedR);
@@ -530,17 +619,50 @@ void save_T1Interrupt(void) {
                 //testSendToMotor(0, 0);
             }
         }
-        plot(1,(uint32_t)((int32_t)(speedL*1000))); //(uint32_t)(-10 = 0) != (uint32_t)(int32_t)(-10)
+        /*if(nplot == 4){
+            nplot = 0;
+            plot(11,(uint32_t)((int32_t)(speedL*1000)));
+            plot(12,(uint32_t)((int32_t)(pidSpeedLeft.setPoint*1000)));
+
+            plot(21,(uint32_t)((int32_t)(speedR*1000)));
+            plot(22,(uint32_t)((int32_t)(pidSpeedRight.setPoint*1000)));
+
+            plot(31,(uint32_t)((int32_t)(x*1000)));
+            plot(32,(uint32_t)((int32_t)(xc*1000)));
+            plot(33,(uint32_t)((int32_t)(y*1000)));
+            plot(34,(uint32_t)((int32_t)(yc*1000)));
+
+            plot(41,(uint32_t)((int32_t)(theta*1000*180/PI)));
+            plot(42,(uint32_t)((int32_t)(thetac*1000*180/PI)));
+        }
+        else{
+            nplot++;
+        }*/
+        
+        /*plot(1,(uint32_t)((int32_t)(speedL*1000))); //(uint32_t)(-10 = 0) != (uint32_t)(int32_t)(-10)
         plot(2,(uint32_t)((int32_t)(pidSpeedLeft.setPoint*1000)));
+        plot(5,(uint32_t)((int32_t)(pidSpeedLeft.debugCommande*10000)));
+        plot(6,(uint32_t)((int32_t)(pidSpeedLeft.debugCommandeP*10000)));
+        plot(7,(uint32_t)((int32_t)(pidSpeedLeft.debugCommandeI*10000)));
+        plot(8,(uint32_t)((int32_t)(pidSpeedLeft.debugCommandeD*10000)));*/
+        
+        //plot(1,(uint32_t)((int32_t)(x))); //(uint32_t)(-10 = 0) != (uint32_t)(int32_t)(-10)
+        //plot(2,(uint32_t)((int32_t)(xc)));
+        
+        /*plot(5,(uint32_t)((int32_t)(pidDistance.debugCommande*10000)));
+        plot(6,(uint32_t)((int32_t)(pidDistance.debugCommandeP*10000)));
+        plot(7,(uint32_t)((int32_t)(pidDistance.debugCommandeI*10000)));
+        plot(8,(uint32_t)((int32_t)(pidDistance.debugCommandeD*10000)));*/
+        
         //print("=)\n");
         // <editor-fold defaultstate="collapsed" desc="Génération de trajectoire">
         /*Génération de trajectoire*/
         if (statePathGeneration != 0) {
             // <editor-fold defaultstate="collapsed" desc="Plots">
-            plot(1, (uint32_t) (int32_t) (pidDistance.prevError * 100));
+            /*plot(1, (uint32_t) (int32_t) (pidDistance.prevError * 100));
             plot(2, (uint32_t) (int32_t) (pidAngle.prevError * 10000));
             plot(3, (uint32_t) (int32_t) (pidSpeedLeft.prevError * 1000));
-            plot(4, (uint32_t) (int32_t) (pidSpeedRight.prevError * 1000));
+            plot(4, (uint32_t) (int32_t) (pidSpeedRight.prevError * 1000));*/
 
             //plot(1,(uint32_t)(int32_t)(thetac*1000));
             //plot(2,(uint32_t)(int32_t)(angularVelocity*1000));

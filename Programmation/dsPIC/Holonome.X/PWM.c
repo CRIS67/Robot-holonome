@@ -137,6 +137,9 @@ void motor(uint8_t id, double value){
     }
 }
 void sendMotor0(double value){
+    if(value < THRESHOLD_MOTOR && value > -THRESHOLD_MOTOR){
+        value = 0;
+    }
     //value = value * CORRECTEUR_BO_0;
     if(value <= -VSAT){
         SENS_0 = BACKWARD;
@@ -156,6 +159,9 @@ void sendMotor0(double value){
     }
 }
 void sendMotor1(double value){
+    if(value < THRESHOLD_MOTOR && value > -THRESHOLD_MOTOR){
+        value = 0;
+    }
     //value = value * CORRECTEUR_BO_1;
     if(value <= -VSAT){
         SENS_1 = BACKWARD;
@@ -175,6 +181,9 @@ void sendMotor1(double value){
     }
 }
 void sendMotor2(double value){
+    if(value < THRESHOLD_MOTOR && value > -THRESHOLD_MOTOR){
+        value = 0;
+    }
     //value = value * CORRECTEUR_BO_2;
     if(value <= -VSAT){
         SENS_2 = BACKWARD;

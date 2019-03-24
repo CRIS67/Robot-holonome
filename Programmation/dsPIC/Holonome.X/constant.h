@@ -8,33 +8,33 @@
 // <editor-fold defaultstate="collapsed" desc="PID">
 //PID speed left    units : rad/s -> V
 #define KP_SPEED_LEFT               0.05//1.5//1//0.38//0.57//0.576
-#define KI_SPEED_LEFT               0//2//0//0.00535//0.05
+#define KI_SPEED_LEFT               0.35//2//0//0.00535//0.05
 #define KD_SPEED_LEFT               0//0.5//0//0.001675//0.0013375//0.005
 #define BIAS_SPEED_LEFT             0
 #define T_SPEED_LEFT                0.01    //s
-#define SMOOTHING_FACTOR_SPEED_LEFT 0.03
+#define SMOOTHING_FACTOR_SPEED_LEFT 0.8//0.03
 #define SATURATION_SPEED_LEFT       VSAT    //unit : voltage
 
 //PID speed right   units : rad/s -> V
 #define KP_SPEED_RIGHT              0.05//1.5//1//0.38//0.57//0.576
-#define KI_SPEED_RIGHT              0//2//0//0.00535//0.05
+#define KI_SPEED_RIGHT              0.35//2//0//0.00535//0.05
 #define KD_SPEED_RIGHT              0//0.5//0//0.001675//0.0013375//0.005
 #define BIAS_SPEED_RIGHT            0
 #define T_SPEED_RIGHT               0.01
-#define SMOOTHING_FACTOR_SPEED_RIGHT 0.03
+#define SMOOTHING_FACTOR_SPEED_RIGHT 0.8//0.03
 #define SATURATION_SPEED_RIGHT      VSAT    //unit : voltage
 
 //PID distance      units : mm -> rad/s
-#define KP_DISTANCE                 0.4//0.15//0.04
+#define KP_DISTANCE                 2//0.15//0.04
 #define KI_DISTANCE                 0
-#define KD_DISTANCE                 0.001//0//0.0065
+#define KD_DISTANCE                 0//0.001//0//0.0065
 #define BIAS_DISTANCE               0
 #define T_DISTANCE                  0.01
 #define SMOOTHING_FACTOR_DISTANCE   1
 #define SATURATION_DISTANCE         1000000    //unit : mm/s
 
 //PID angle         units : rad -> rad/s
-#define KP_ANGLE                    20//80//15//80//120//90//30//60
+#define KP_ANGLE                    1000//20//80//15//80//120//90//30//60
 #define KI_ANGLE                    0
 #define KD_ANGLE                    1//2//1//0//6.5
 #define BIAS_ANGLE                  0
@@ -45,7 +45,7 @@
 //#define MAX_I    100
 //PID speed 0    units : tr/s -> V
 #define KP_SPEED_0                  10//1.5//1//0.38//0.57//0.576
-#define KI_SPEED_0                  0//2//0//0.00535//0.05
+#define KI_SPEED_0                  50//2//0//0.00535//0.05
 #define KD_SPEED_0                  0//0.5//0//0.001675//0.0013375//0.005
 #define BIAS_SPEED_0                0
 #define T_SPEED_0                   0.02    //s
@@ -54,7 +54,7 @@
 
 //PID speed 1    units : tr/s -> V
 #define KP_SPEED_1                  10//1.5//1//0.38//0.57//0.576
-#define KI_SPEED_1                  0//2//0//0.00535//0.05
+#define KI_SPEED_1                  50//2//0//0.00535//0.05
 #define KD_SPEED_1                  0//0.5//0//0.001675//0.0013375//0.005
 #define BIAS_SPEED_1                0
 #define T_SPEED_1                   0.02
@@ -63,7 +63,7 @@
 
 //PID speed 2    units : tr/s -> V
 #define KP_SPEED_2                  10//1.5//1//0.38//0.57//0.576
-#define KI_SPEED_2                  0//2//0//0.00535//0.05
+#define KI_SPEED_2                  50//2//0//0.00535//0.05
 #define KD_SPEED_2                  0//0.5//0//0.001675//0.0013375//0.005
 #define BIAS_SPEED_2                0
 #define T_SPEED_2                   0.02
@@ -95,7 +95,7 @@
 #define RX_SIZE 100     //size of Rx buffer
 #define RX_DMA_SIZE 1000 //
 
-#define COEF_SCALE_PID  10000
+#define COEF_SCALE_PID  1000000
 #define COEF_SCALE_COEF_DISSYMETRY                      10000
 #define COEF_SCALE_MM_PER_TICKS                         1000000
 #define COEF_SCALE_DISTANCE_BETWEEN_ENCODER_WHEELS      1000
@@ -127,7 +127,10 @@
 #define TX_SIZE_VAR      //ça dépend
 #define TX_SIZE_VAR_8B   // ?
 #define TX_SIZE_VAR_16B 5
-#define TX_SIZE_VAR_32B 8
+#define TX_SIZE_VAR_32B 7
+#define TX_SIZE_VAR_DOUBLE 7
+#define TX_SIZE_VAR_LONG_DOUBLE 11
+
 #define TX_SIZE_PLOT    11   
 
 #define MASK_OPTION_RELATIVE    0x2
@@ -143,6 +146,11 @@
 #define CODE_VAR_X          1
 #define CODE_VAR_Y          2
 #define CODE_VAR_T          3
+
+#define CODE_VAR_X_LD       6
+#define CODE_VAR_Y_LD       7
+#define CODE_VAR_T_LD       8
+
 #define CODE_VAR_RUPT       4
 #define CODE_VAR_VERBOSE    5
 
@@ -164,15 +172,22 @@
 #define CODE_VAR_I_ANGLE     22
 #define CODE_VAR_D_ANGLE     23
 
+#define CODE_VAR_ODO         29
+
 #define CODE_VAR_COEF_DISSYMETRY                    30
 #define CODE_VAR_MM_PER_TICKS                       31
 #define CODE_VAR_DISTANCE_BETWEEN_ENCODER_WHEELS    32
+
+#define CODE_VAR_COEF_DISSYMETRY_LD                 33
+#define CODE_VAR_MM_PER_TICKS_LD                    34
+#define CODE_VAR_RAD_PER_TICKS_LD                   35
 
 #define CODE_VAR_US     100 //attention range [100 ; 100 + NB_US - 1]
 
 #define VAR_8b      0
 #define VAR_16b     1
 #define VAR_32b     2
+#define VAR_64b     3
 
 
 // </editor-fold>
@@ -204,6 +219,8 @@
 #define CORRECTEUR_BO_1 1.16
 #define CORRECTEUR_BO_2 1.24
 
+#define THRESHOLD_MOTOR 1
+
 #define PERCENTAGE_DEADBAND 0
 #define DEAD_ZONE   1.3   //tension min qui fait tourner le moteur A MESURER
 #define COEF_MOT_BO 0.65//0.428571    //  250*12/7000
@@ -214,6 +231,12 @@
 
 #define MAX_ERROR_D     8//1//10      //mm
 #define MAX_ERROR_A     0.05//0.02//0.01//0.01rad ~= 0.57°
+
+#define MAX_ERROR_D_INF     5//1//10      //mm
+#define MAX_ERROR_D_SUP     10//1//10      //mm
+#define MAX_ERROR_A_INF     0.05//0.02//0.01//0.01rad ~= 0.57°
+#define MAX_ERROR_A_SUP     0.1//0.02//0.01//0.01rad ~= 1.04°
+
 #define MAX_SPEED_STOP  5 // ENCODER_WHEEL_RADIUS    //rad/s -> 5mm/s
 
 #define N_ASSERV        20  //nombre d'itérations entre 2 boucles d'asserv'
@@ -287,6 +310,8 @@
 
 
 #define MM_PER_TICKS                        PI * ENCODER_WHEEL_DIAMETER / TICKS_PER_TURN
+#define RAD_PER_TICKS                       0.0001405
+//#define TICKS_PER_RAD                       15572.957676416326850467129424503
 // </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="ADC">
@@ -298,7 +323,7 @@
 #define LINEAR_SPEED        0.1     //mm
 #define DELAY_SPEED         1       //ms
 
-#define ACCELERATION_MAX    1000000     //mm.s^-2
+#define ACCELERATION_MAX    3500     //mm.s^-2
 #define SPEED_MAX           1000000    //mm.s^-1
 #define TE                  0.01    //s
 // </editor-fold>

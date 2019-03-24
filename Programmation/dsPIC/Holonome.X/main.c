@@ -5,14 +5,11 @@
  * Created on September 18, 2017, 6:59 PM
  */
 
-#include "constant.h"
-
-
-
 #include <xc.h>
 #include <math.h>
 #include <p33EP512GM310.h>
 #include <stdint.h>
+#include "constant.h"
 #include "clock.h"
 #include "GPIO.h"
 #include "timer.h"
@@ -26,6 +23,8 @@
 #include "US.h"
 #include "AX12.h"
 #include "DMA.h"
+
+
 
 void testAccMax();
 void reglageDiametre();
@@ -51,17 +50,17 @@ char RX[RX_SIZE];
 char unsigned TX_i;
 char unsigned RX_i;
 /*Current position*/
-volatile double x;
-volatile double y;
-volatile double theta;
+volatile long double x;
+volatile long double y;
+volatile long double theta;
 /*Current setpoint position*/
-double xc;
-double yc;
-double thetac;
+volatile long double xc;
+volatile long double yc;
+volatile long double thetac;
 /*Final setpoint position*/
-double xf;
-double yf;
-double tf;
+volatile long double xf;
+volatile long double yf;
+volatile long double tf;
 
 uint8_t finalPoint = 1;
 
@@ -144,6 +143,20 @@ volatile int16_t tick0 = 0;
 volatile int16_t tick1 = 0;
 volatile int16_t tick2 = 0;
 
+volatile double funSpeed = 1000;
+volatile double funAcc = 1000;
+
+volatile double funAngularSpeed = 10;
+volatile double funAngularAcc = 1;
+
+int sens = 0;
+
+
+volatile long double kahanErrorX;
+volatile long double kahanErrorY;
+volatile long double kahanErrorT;
+
+
 int main(){
     initClock(); //Clock 140 MHz
     initGPIO();
@@ -152,7 +165,7 @@ int main(){
     initDMA();
     initUART();
     //initAX12();
-    initInt();    
+    initInt();
     
     initPID(&pidSpeed0,KP_SPEED_0,KI_SPEED_0,KD_SPEED_0,BIAS_SPEED_0,0,T_SPEED_0,0,0,SMOOTHING_FACTOR_SPEED_0,SATURATION_SPEED_0);
     initPID(&pidSpeed1,KP_SPEED_1,KI_SPEED_1,KD_SPEED_1,BIAS_SPEED_1,0,T_SPEED_1,0,0,SMOOTHING_FACTOR_SPEED_1,SATURATION_SPEED_1);
@@ -200,13 +213,19 @@ int main(){
     IEC0bits.T1IE = 1;
     while(1){
         setSetPoint(&pidSpeed0,1);
-        setSetPoint(&pidSpeed1,1);
-        setSetPoint(&pidSpeed2,1);
-        delay_ms(2000);
-        setSetPoint(&pidSpeed0,0);
-        setSetPoint(&pidSpeed1,0);
+        setSetPoint(&pidSpeed1,-1);
         setSetPoint(&pidSpeed2,0);
-        delay_ms(2000);
+        for(iMotor = 0; iMotor < 200; iMotor++){
+            CheckMessages();
+            delay_ms(10);
+        }
+        setSetPoint(&pidSpeed0,-1);
+        setSetPoint(&pidSpeed1,1);
+        setSetPoint(&pidSpeed2,0);
+        for(iMotor = 0; iMotor < 200; iMotor++){
+            CheckMessages();
+            delay_ms(10);
+        }
     }
     while(1){
         for(iMotor = 10; iMotor < 50; iMotor+=0.02){
@@ -314,238 +333,6 @@ int main(){
         CheckMessages();
         //sendLog("hello there =) !\n");
     }
-    
-    
-    while(1){
-        iLed++;
-        CheckMessages();
-        delay_ms(10);
-        if(iLed == 10){
-            LATFbits.LATF5  = 0;
-            LATGbits.LATG3  = 1;
-        }
-        if(iLed == 20){
-            LATGbits.LATG3  = 0;
-            LATFbits.LATF4  = 1;
-        }
-        if(iLed == 30){
-            LATFbits.LATF4  = 0;
-            LATFbits.LATF5  = 1;
-            iLed = 0;
-        }
-    }
-    
-    
-    
-    x = 0;
-    y = 0;
-    theta = 0;
-    
-    xc = 0;
-    yc = 0;
-    thetac = 0;
-    
-    xf = 0;
-    yf = 0;
-    tf = 0;
-    
-    TX_i = 0;
-    RX_i = 0;
-    
-    R = 0;
-    L = 0;
-    
-
-    
-    /*POS1CNTL = 0x8000;
-    POS2CNTL = 0x8000;*/
-    POS1CNTL = 0x0000;
-    POS2CNTL = 0x0000;
-    
-    //initAllPID(&pidSpeedLeft, &pidSpeedRight, &pidDistance, &pidAngle);
-    initTimer();
-    state = 1;
-    
-    stop = 0;
-
-    int m,p = 0;
-    p++;
-    /*x = 1000;
-    y = 1500;
-    theta = PI*/
-    
-    x = 0;
-    y = 0;
-    theta = 0;
-    
-    xc = x;
-    yc = y;
-    thetac = theta;
-    
-    xf = x;
-    yf = y;
-    tf = theta;
-    /*for(p = 0; p <= 6; p++)
-        servoUs(p,0);*/
-    verbose = 0;
-    
-    //uint32_t foo = 0;
-    
-    //TRISFbits.TRISF7 = 0;
-    //uint16_t iDelay,jDelay;
-    //LATFbits.LATF7 = 1;
-    
-    delay_ms(2000);
-    while(1){
-        xc = 500;
-        CheckMessages();
-        delay_ms(1000);
-        xc = 0;
-        CheckMessages();
-        delay_ms(1000);
-        xc = -500;
-        CheckMessages();
-        delay_ms(1000);
-        xc = 0;
-        CheckMessages();
-        delay_ms(1000);
-    }
-    
-    while(1){
-        sendLog("x = ");
-        sendLog(dtoa(x));
-        sendLog(" | y = ");
-        sendLog(dtoa(y));
-        sendLog(" | t = ");
-        sendLog(dtoa(theta*180/PI));
-        sendLog("\n");
-        sendPos();
-        
-        CheckMessages();
-        delay_ms(500);
-    }
-    while(1){
-        //uint16_t dummy = SPI2BUF;
-        sendLog("0x20 (debug) sent to ComeCard\n");
-        SPI2BUF = 0x20; //debug
-        delay_ms(500);
-        //dummy = SPI2BUF;
-        //CheckMessages();
-        //sendLog(itoa(dummy));
-        sendLog("0x21 (autre) sent to ComeCard\n");
-        SPI2BUF = 0x21; //autre
-        delay_ms(500);
-        //dummy = SPI2BUF;
-        CheckMessages();
-        //sendLog(itoa(dummy));
-    }
-    while(1){
-        /*for(p = 10; p < 50; p++){
-            plot(p,100);
-            delay_ms(10);
-        }*/
-        /*plot(1,(uint32_t)(int32_t)(thetac*1000));
-        //plot(2,(uint32_t)(int32_t)(angularVelocity*1000));
-        //plot(3,(uint32_t)(int32_t)(angle*1000));
-        plot(4,(uint32_t)(int32_t)(theta*1000));
-        plot(5,(uint32_t)(int32_t)(pidAngle.setPoint*1000));*/
-        CheckMessages();
-        //if(!stop){
-            delay_ms(10);
-            //plot(1,micros());
-            sendPos();
-            sendRupt();
-            sendUS();
-            /*plot(1,iF2);
-            plot(2,iD2);*/
-            m++;
-            if(m >= 10){
-                m = 0;
-                //sendLog("m overflow\n");
-            }
-            //send("timing\n",strlen("timing\n"));
-            if(newPosReceived){
-                statePathGeneration = 42;
-                delay_ms(100);
-                newPosReceived = 0;
-                if(newPosBackReceived)
-                {
-                    newPosBackReceived = 0;
-                    //printRpi(("DEBUG goBack main 1\n"));
-                    goBack(receivedX,receivedY,2000,200);
-                    //printRpi(("DEBUG goBack main 2\n"));
-                }
-                else{
-                    //go(receivedX,receivedY,2000,200);
-                    //go(receivedX,receivedY,1000,100);
-                    modif_straightPath(receivedX,receivedY,0,1000,100);
-                }
-            }
-            if(newAngleReceived){
-                newAngleReceived = 0;
-                turn(receivedTheta);
-            }
-            /*if(statePathGeneration){
-                plot(1,(uint32)(int32)(((thetac*3600)/(2*PI))));
-                plot(2,(uint32)(int32)(((angularVelocity*3600)/(2*PI))));
-                plot(3,(uint32)(int32)(((theta*3600)/(2*PI))));
-            }*/
-        //}
-        
-    }
-
-    /*while(1){
-        if(stop){
-            //IEC0bits.T1IE = 0;  //stop asserv
-            sendToMotor(0,0);   //stop motors
-            while(stop){        //wait for start signal
-            }
-            //IEC0bits.T1IE = 1;  //restart asserv
-        }
-        switch(state){
-            case 0: //init
-                IEC0bits.T1IE = 0;
-                x = 0;
-                y = 0;
-                theta = 0;
-                xc = 0;
-                yc = 0;
-                thetac = 0;
-                xf = 0;
-                yf = 0;
-                tf = 0;
-                POS1CNTL = 0x8000;
-                POS2CNTL = 0x8000;
-                IEC0bits.T1IE = 1;
-                delay_ms(1000);
-                state++;
-                break;
-            case 1 :
-                if(newPosReceived){
-                    newPosReceived = 0;
-                    if(newPosBackReceived)
-                    {
-                        newPosBackReceived = 0;
-                        //printRpi(("DEBUG goBack main 1\n"));
-                        goBack(receivedX,receivedY,2000,200);
-                        //printRpi(("DEBUG goBack main 2\n"));
-                    }
-                    else
-                        //go(receivedX,receivedY,2000,200);
-                        modif_straightPath(receivedX,receivedY,0,1000,1000);
-                }
-                if(newAngleReceived){
-                    newAngleReceived = 0;
-                    turn(receivedTheta);
-                }
-                delay_ms(100);
-                break;
-            default:
-                sendLog("ERROR UNDEFINED STATE");
-                break;       
-        }
-       
-    }*/
     return 0;
 }
 
@@ -1062,8 +849,10 @@ void modif_straightPath(double arg_cx, double arg_cy, double arg_ct, double arg_
     tf = theta;
     finalPoint = 0;
     theta0 = theta;
-    AngularAcceleration = 1;
-    maxAngularVelocity = 10;
+    AngularAcceleration = funAngularAcc;
+    maxAngularVelocity = funAngularSpeed;
+    /*AngularAcceleration = 1;
+    maxAngularVelocity = 10;*/
     angularVelocity = 0;
     prevAngularVelocity = 0;
     angle = 0;

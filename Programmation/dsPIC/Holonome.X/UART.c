@@ -11,15 +11,23 @@
 #include "PWM.h"
 
 // <editor-fold defaultstate="collapsed" desc="Variables">
-extern double xc;
+//extern long double xc;
 extern int state;
 extern PID pidAngle, pidDistance, pidSpeedLeft, pidSpeedRight;
 extern volatile PID pidSpeed0, pidSpeed1, pidSpeed2;
 extern int R, L;
 extern volatile double US[NB_US];
-extern volatile double x;
-extern volatile double y;
-extern volatile double theta;
+extern volatile long double x;
+extern volatile long double y;
+extern volatile long double theta;
+
+extern volatile long double xc;
+extern volatile long double yc;
+extern volatile long double thetac;
+
+extern volatile long double xf;
+extern volatile long double yf;
+extern volatile long double tf;
 
 extern volatile unsigned char stop;
 
@@ -50,8 +58,14 @@ uint32_t testPID = 0;
 
 extern long double coef_dissymmetry;
 extern long double mm_per_ticks;
+extern long double rad_per_ticks;
 extern long double distance_between_encoder_wheels;// </editor-fold>
 
+extern volatile double funSpeed;
+extern volatile double funAcc;
+
+extern volatile double funAngularSpeed;
+extern volatile double funAngularAcc;
 
 // <editor-fold defaultstate="collapsed" desc="Init">
 
@@ -291,6 +305,10 @@ void CheckMessages(){
         uint16_t iArg4 = (start + 5) % RX_DMA_SIZE;
         uint16_t iArg5 = (start + 6) % RX_DMA_SIZE;
         uint16_t iArg6 = (start + 7) % RX_DMA_SIZE;
+        uint16_t iArg7 = (start + 8) % RX_DMA_SIZE;
+        uint16_t iArg8 = (start + 9) % RX_DMA_SIZE;
+        uint16_t iArg9 = (start + 10) % RX_DMA_SIZE;
+        uint16_t iArg10 = (start + 11) % RX_DMA_SIZE;
         uint16_t iChecksum = (start + size) % RX_DMA_SIZE;
 
         uint16_t i, j;
@@ -451,6 +469,10 @@ void CheckMessages(){
                             sendLog("mm per ticks changed to : ");
                             sendLog(dtoa((double)mm_per_ticks));
                             sendLog("\n");
+                            /*funAngularSpeed = (double)(value/1000);
+                            sendLog("funSpeed changed to : ");
+                            sendLog(dtoa(funAngularSpeed));
+                            sendLog("\n");*/
                             break;
                         case CODE_VAR_DISTANCE_BETWEEN_ENCODER_WHEELS:
                             value = ((uint32_t)RxDMABuffer[iArg3] << 24) + ((uint32_t)RxDMABuffer[iArg4] << 16) + ((uint32_t)RxDMABuffer[iArg5] << 8) + RxDMABuffer[iArg6];
@@ -458,10 +480,102 @@ void CheckMessages(){
                             sendLog("Distance between encoder wheels changed to : ");
                             sendLog(dtoa((double)distance_between_encoder_wheels));
                             sendLog("\n");
+                            /*funAngularAcc = (double)(value / COEF_SCALE_DISTANCE_BETWEEN_ENCODER_WHEELS);
+                            sendLog("funAcc changed to : ");
+                            sendLog(dtoa(funAngularAcc));
+                            sendLog("\n");*/
                             break;
                     }
                 }
-                break;
+                else if (type == VAR_64b) {
+                    switch (var){
+                        case CODE_VAR_X_LD:{
+                            uint8_t *ptr = (uint8_t*)&x;
+                            ptr[0] = RxDMABuffer[iArg3];
+                            ptr[1] = RxDMABuffer[iArg4];
+                            ptr[2] = RxDMABuffer[iArg5];
+                            ptr[3] = RxDMABuffer[iArg6];
+                            ptr[4] = RxDMABuffer[iArg7];
+                            ptr[5] = RxDMABuffer[iArg8];
+                            ptr[6] = RxDMABuffer[iArg9];
+                            ptr[7] = RxDMABuffer[iArg10];
+                            sendLongDouble(CODE_VAR_X_LD,x);
+                            xc = x;
+                            xf = x;
+                            break;
+                        }
+                        case CODE_VAR_Y_LD:{
+                            uint8_t *ptr = (uint8_t*)&y;
+                            ptr[0] = RxDMABuffer[iArg3];
+                            ptr[1] = RxDMABuffer[iArg4];
+                            ptr[2] = RxDMABuffer[iArg5];
+                            ptr[3] = RxDMABuffer[iArg6];
+                            ptr[4] = RxDMABuffer[iArg7];
+                            ptr[5] = RxDMABuffer[iArg8];
+                            ptr[6] = RxDMABuffer[iArg9];
+                            ptr[7] = RxDMABuffer[iArg10];
+                            sendLongDouble(CODE_VAR_Y_LD,y);
+                            yc = y;
+                            yf = y;
+                            break;
+                        }
+                        case CODE_VAR_T_LD:{
+                            uint8_t *ptr = (uint8_t*)&theta;
+                            ptr[0] = RxDMABuffer[iArg3];
+                            ptr[1] = RxDMABuffer[iArg4];
+                            ptr[2] = RxDMABuffer[iArg5];
+                            ptr[3] = RxDMABuffer[iArg6];
+                            ptr[4] = RxDMABuffer[iArg7];
+                            ptr[5] = RxDMABuffer[iArg8];
+                            ptr[6] = RxDMABuffer[iArg9];
+                            ptr[7] = RxDMABuffer[iArg10];
+                            sendLongDouble(CODE_VAR_X_LD,theta);
+                            thetac = theta;
+                            tf = theta;
+                            break;
+                        }
+                        case CODE_VAR_COEF_DISSYMETRY_LD:{
+                            uint8_t *ptr = (uint8_t*)&coef_dissymmetry;
+                            ptr[0] = RxDMABuffer[iArg3];
+                            ptr[1] = RxDMABuffer[iArg4];
+                            ptr[2] = RxDMABuffer[iArg5];
+                            ptr[3] = RxDMABuffer[iArg6];
+                            ptr[4] = RxDMABuffer[iArg7];
+                            ptr[5] = RxDMABuffer[iArg8];
+                            ptr[6] = RxDMABuffer[iArg9];
+                            ptr[7] = RxDMABuffer[iArg10];
+                            sendLongDouble(CODE_VAR_COEF_DISSYMETRY_LD,coef_dissymmetry);
+                            break;
+                        }
+                        case CODE_VAR_MM_PER_TICKS_LD:{
+                            uint8_t *ptr = (uint8_t*)&mm_per_ticks;
+                            ptr[0] = RxDMABuffer[iArg3];
+                            ptr[1] = RxDMABuffer[iArg4];
+                            ptr[2] = RxDMABuffer[iArg5];
+                            ptr[3] = RxDMABuffer[iArg6];
+                            ptr[4] = RxDMABuffer[iArg7];
+                            ptr[5] = RxDMABuffer[iArg8];
+                            ptr[6] = RxDMABuffer[iArg9];
+                            ptr[7] = RxDMABuffer[iArg10];
+                            sendLongDouble(CODE_VAR_MM_PER_TICKS_LD,mm_per_ticks);
+                            break;
+                        }
+                        case CODE_VAR_RAD_PER_TICKS_LD:{
+                            uint8_t *ptr = (uint8_t*)&rad_per_ticks;
+                            ptr[0] = RxDMABuffer[iArg3];
+                            ptr[1] = RxDMABuffer[iArg4];
+                            ptr[2] = RxDMABuffer[iArg5];
+                            ptr[3] = RxDMABuffer[iArg6];
+                            ptr[4] = RxDMABuffer[iArg7];
+                            ptr[5] = RxDMABuffer[iArg8];
+                            ptr[6] = RxDMABuffer[iArg9];
+                            ptr[7] = RxDMABuffer[iArg10];
+                            sendLongDouble(CODE_VAR_RAD_PER_TICKS_LD,rad_per_ticks);
+                            break;
+                        }
+                    }
+                    break;
+                }
             } // </editor-fold>
 
                 // <editor-fold defaultstate="collapsed" desc="Get">
@@ -470,17 +584,24 @@ void CheckMessages(){
                 if (size != RX_SIZE_GET)
                     return;
 
-                unsigned char var = RxDMABuffer[iArg1];
+                unsigned char varCode = RxDMABuffer[iArg1];
 
-                switch (var) {
+                switch (varCode) {
                     case VAR_STATE:
                         //sendLog(itoa(state));
                         break;
-                    case CODE_VAR_BAT:
-                        sendLog(itoa(VBAT*10));
+                    case CODE_VAR_BAT:{
+                        double vbat = VBAT;
+                        sendDouble(CODE_VAR_BAT, &vbat);
                         break;
+                    }
                     case CODE_VAR_ALLPID:
                         sendAllPID();
+                        break;
+                    case CODE_VAR_ODO:
+                        sendLongDouble(CODE_VAR_COEF_DISSYMETRY_LD,coef_dissymmetry);
+                        sendLongDouble(CODE_VAR_MM_PER_TICKS_LD,mm_per_ticks);
+                        sendLongDouble(CODE_VAR_RAD_PER_TICKS_LD,rad_per_ticks);
                         break;
                     default:
                         break;
@@ -811,14 +932,57 @@ void sendVar32(uint8_t varCode, uint32_t var){
     buffer[0] = TX_SIZE_VAR_32B;
     buffer[1] = TX_CODE_VAR;
     buffer[2] = varCode;
-    buffer[3] = TX_SIZE_VAR_32B;
-    buffer[4] = (uint8_t)(var >> 24);
-    buffer[5] = (uint8_t)(var >> 16);
-    buffer[6] = (uint8_t)(var >> 8);
-    buffer[7] = (uint8_t)(var & 0xFF);
-    buffer[8] = 0;
+    buffer[3] = (uint8_t)(var >> 24);
+    buffer[4] = (uint8_t)(var >> 16);
+    buffer[5] = (uint8_t)(var >> 8);
+    buffer[6] = (uint8_t)(var & 0xFF);
+    buffer[7] = 0;
     for(i = 0; i < TX_SIZE_VAR_32B; i++){
-        buffer[8] += buffer[i];	//checksum
+        buffer[7] += buffer[i];	//checksum
     }
 	send(buffer,TX_SIZE_VAR_32B + 1);
+}
+void sendDouble(uint8_t varCode, double *ptrVar){
+    uint8_t *ptrChar = (uint8_t*)ptrVar;
+    uint8_t  i;
+	uint8_t buffer[TX_SIZE_VAR_DOUBLE + 1];
+    buffer[0] = TX_SIZE_VAR_DOUBLE;
+    buffer[1] = TX_CODE_VAR;
+    buffer[2] = varCode;
+    buffer[3] = ptrChar[0];
+    buffer[4] = ptrChar[1];
+    buffer[5] = ptrChar[2];
+    buffer[6] = ptrChar[3];
+    buffer[7] = 0;
+    for(i = 0; i < TX_SIZE_VAR_DOUBLE; i++){
+        buffer[7] += buffer[i];	//checksum
+    }
+	send(buffer,TX_SIZE_VAR_DOUBLE + 1);
+}
+void sendLongDouble(uint8_t varCode, long double var){
+    long double *ptrVar = &var;
+    uint8_t *ptrChar = (uint8_t*)ptrVar;
+    uint8_t  i;
+	uint8_t buffer[TX_SIZE_VAR_LONG_DOUBLE + 1];
+    buffer[0] = TX_SIZE_VAR_LONG_DOUBLE;
+    buffer[1] = TX_CODE_VAR;
+    buffer[2] = varCode;
+    buffer[3] = ptrChar[0];
+    buffer[4] = ptrChar[1];
+    buffer[5] = ptrChar[2];
+    buffer[6] = ptrChar[3];
+    buffer[7] = ptrChar[4];
+    buffer[8] = ptrChar[5];
+    buffer[9] = ptrChar[6];
+    buffer[10] = ptrChar[7];
+    buffer[11] = 0;
+    for(i = 0; i < TX_SIZE_VAR_LONG_DOUBLE; i++){
+        buffer[11] += buffer[i];	//checksum
+    }
+	send(buffer,TX_SIZE_VAR_LONG_DOUBLE + 1);
+}
+void sendPosLongDouble(){
+    sendLongDouble(CODE_VAR_X_LD,x);
+    sendLongDouble(CODE_VAR_Y_LD,y);
+    sendLongDouble(CODE_VAR_T_LD,theta);
 }
