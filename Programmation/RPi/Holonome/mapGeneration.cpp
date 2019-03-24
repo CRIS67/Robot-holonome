@@ -1,4 +1,4 @@
-#include "mapGeneration.h"
+#include "mapGeneration.hpp"
 
 void generateMap(std::vector<std::vector<int>>& mapVector, int mapRows, int mapColumns) {
 

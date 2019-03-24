@@ -10,8 +10,8 @@
 #include <cmath>
 #include <bits/stdc++.h>
 #include <limits>
-#include "mapGeneration.h"
-#include "dStartLite.h"
+#include "mapGeneration.hpp"
+
 
 const double infinity = std::numeric_limits<double>::infinity(); // infinity value
 
