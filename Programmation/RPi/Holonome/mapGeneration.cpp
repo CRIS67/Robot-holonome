@@ -19,7 +19,7 @@ void createRectangle(int startX, int startY, int width, int length, std::vector<
 		std::cerr << "Too big of rectangle :( " std::endl; 
 		return; 
 	}
-	
+
 	for(int i = 0; i<width; i++)
 	{
 		for(int j = 0; i<length; j++)
@@ -31,7 +31,7 @@ void createRectangle(int startX, int startY, int width, int length, std::vector<
 
 void printMap(int mapRows, int mapColumns, std::vector<std::vector<int>>& mapVector) {
 
-	std::cout << "PRINTING RANDOM MAP" << std::endl;
+	std::cout << std::endl << std::endl << "=================PRINTING MAP=====================" << std::endl;
 	for(int i = 0; i< mapRows; i++){
 
 		for (int j= 0; j<mapColumns; j++){
@@ -39,6 +39,7 @@ void printMap(int mapRows, int mapColumns, std::vector<std::vector<int>>& mapVec
 		}
 		std::cout << std::endl;
 	}
+	std::cout << std::endl << std::endl ; 
 }
 
 void clearMap(std::vector<std::vector<int>>& mapVector, std::vector<std::pair<int,int>>& obstaclesCoord){

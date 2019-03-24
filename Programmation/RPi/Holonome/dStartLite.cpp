@@ -261,6 +261,25 @@ void findPath(std::vector<std::vector<int>>& randomMap, mappedNodes& knownNodes,
 }
 
 /*
+Returns a vector with all the points of the path 
+*/
+std::vector<Node> getPath(std::vector<std::vector<int>>& randomMap, mappedNodes& knownNodes, Node currentNode, Node goalNode)
+{
+	std::vector<Node> path;
+    path.push_back(currentNode);
+
+    Node tmp = currentNode;
+    std::vector<std::vector<int>> printedMap = randomMap; // we copy the map in order to print the path
+
+    while(tmp.coord != goalNode.coord){
+        tmp = bestNode(tmp, knownNodes);
+        path.push_back(tmp);
+    }
+
+    return path; 
+}
+
+/*
 Finds the best successors that minimzes c(s,s') + g(s')
 */
 Node bestNode(Node currentNode ,mappedNodes& knownNodes){

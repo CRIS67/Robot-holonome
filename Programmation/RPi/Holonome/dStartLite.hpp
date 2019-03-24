@@ -49,7 +49,7 @@ void updateAdjacents(Node currentNode, priorityList& uList, mappedNodes& knownNo
 void findPath(std::vector<std::vector<int>>& randomMap, mappedNodes& knownNodes, Node currentNode, Node goalNode);
 Node bestNode(Node currentNode ,mappedNodes& knownNodes);
 void updateMap(mappedNodes& knownNodes, std::vector<std::vector<int>>& randomMap, priorityList& priorList, std::pair<int,int> startCoord, Node goalNode);
-
+std::vector<Node> getPath(std::vector<std::vector<int>>& randomMap, mappedNodes& knownNodes, Node currentNode, Node goalNode); 
 // DEBUG
 void printKnownNode(mappedNodes& knownNodes);
 void printNodesAndKeys(mappedNodes& knownNodes);

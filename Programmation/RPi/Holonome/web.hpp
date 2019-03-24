@@ -14,6 +14,9 @@
 #include <math.h>
 #include <unistd.h>
 #include "dspic.hpp"
+
+#define DEBUG_PID   0
+
 void* thread_HandleConnnection(void *threadid);
 std::string simulateResponse(double i);
 class Web
@@ -22,13 +25,13 @@ class Web
         Web(DsPIC *ds);
         virtual ~Web();
         bool acceptClient();
-		void closeClient();
+        void closeClient();
         bool sendMsg(std::string message);
-		std::string receiveMsg();
+        std::string receiveMsg();
         bool startThread();
         std::string s;
-		DsPIC *dspic;
-		bool waitingResponsePID = false;
+        DsPIC *dspic;
+        bool waitingResponsePID = false;
     protected:
         int socket_listen;
         int socket_client;
