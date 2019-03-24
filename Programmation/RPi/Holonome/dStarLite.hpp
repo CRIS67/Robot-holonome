@@ -10,8 +10,7 @@
 #include <cmath>
 #include <bits/stdc++.h>
 #include <limits>
-#include "mapGeneration.h"
-#include "dStartLite.h"
+#include "mapGeneration.hpp"
 
 const double infinity = std::numeric_limits<double>::infinity(); // infinity value
 
@@ -41,15 +40,15 @@ void update( std::pair<float,float> oldKey, std::pair<float,float> newKey, prior
 float distance2(Node node1, Node node2);
 
 std::pair<float, float> calculateKey(Node node, Node startNode);
-void initialize(std::vector<std::vector<int>>& randomMap, mappedNodes& knownNodes, priorityList& uList, Node startNode, Node goalNode);
+void initialize(std::vector<std::vector<int>>& mapVector, mappedNodes& knownNodes, priorityList& uList, Node startNode, Node goalNode);
 void updateNode( Node node, priorityList& uList, mappedNodes& knownNodes,std::pair<int,int> startCoord, Node goal);
 void computeShortestPath(priorityList& uList, mappedNodes& knownNodes, std::pair<int,int> startCoord, Node goalNode);
 float minSuccessor(Node node, mappedNodes& knownNodes);
 void updateAdjacents(Node currentNode, priorityList& uList, mappedNodes& knownNodes, std::pair<int,int> startCoord, Node goalNode);
-void findPath(std::vector<std::vector<int>>& randomMap, mappedNodes& knownNodes, Node currentNode, Node goalNode);
+void findPath(std::vector<std::vector<int>>& mapVector, mappedNodes& knownNodes, Node currentNode, Node goalNode);
 Node bestNode(Node currentNode ,mappedNodes& knownNodes);
-void updateMap(mappedNodes& knownNodes, std::vector<std::vector<int>>& randomMap, priorityList& priorList, std::pair<int,int> startCoord, Node goalNode);
-std::vector<Node> getPath(std::vector<std::vector<int>>& randomMap, mappedNodes& knownNodes, Node currentNode, Node goalNode); 
+void updateMap(mappedNodes& knownNodes, std::vector<std::vector<int>>& mapVector, priorityList& priorList, std::pair<int,int> startCoord, Node goalNode);
+std::vector<Node> getPath(std::vector<std::vector<int>>& mapVector, mappedNodes& knownNodes, Node currentNode, Node goalNode); 
 // DEBUG
 void printKnownNode(mappedNodes& knownNodes);
 void printNodesAndKeys(mappedNodes& knownNodes);
