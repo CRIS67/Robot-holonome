@@ -43,6 +43,34 @@
 #define SATURATION_ANGLE            1000000    //unit : mm/s
 
 //#define MAX_I    100
+//PID speed 0    units : tr/s -> V
+#define KP_SPEED_0                  10//1.5//1//0.38//0.57//0.576
+#define KI_SPEED_0                  0//2//0//0.00535//0.05
+#define KD_SPEED_0                  0//0.5//0//0.001675//0.0013375//0.005
+#define BIAS_SPEED_0                0
+#define T_SPEED_0                   0.02    //s
+#define SMOOTHING_FACTOR_SPEED_0    0.03
+#define SATURATION_SPEED_0          VSAT    //unit : voltage
+
+//PID speed 1    units : tr/s -> V
+#define KP_SPEED_1                  10//1.5//1//0.38//0.57//0.576
+#define KI_SPEED_1                  0//2//0//0.00535//0.05
+#define KD_SPEED_1                  0//0.5//0//0.001675//0.0013375//0.005
+#define BIAS_SPEED_1                0
+#define T_SPEED_1                   0.02
+#define SMOOTHING_FACTOR_SPEED_1    0.03
+#define SATURATION_SPEED_1          VSAT    //unit : voltage
+
+//PID speed 2    units : tr/s -> V
+#define KP_SPEED_2                  10//1.5//1//0.38//0.57//0.576
+#define KI_SPEED_2                  0//2//0//0.00535//0.05
+#define KD_SPEED_2                  0//0.5//0//0.001675//0.0013375//0.005
+#define BIAS_SPEED_2                0
+#define T_SPEED_2                   0.02
+#define SMOOTHING_FACTOR_SPEED_2    0.03
+#define SATURATION_SPEED_2          VSAT    //unit : voltage
+
+
 
 // </editor-fold>
 
@@ -170,8 +198,13 @@
 
 #define VBAT        (((double)ADC1BUF0*5.7*3.3)/1024)//12  //à remplacer plus tard par lecture de la tension ?
 
-#define VSAT        8  //saturation pour brider la vitesse
+#define VSAT        2  //saturation pour brider la vitesse  2 -> 6V au multimètre 
 
+#define CORRECTEUR_BO_0 1.37
+#define CORRECTEUR_BO_1 1.16
+#define CORRECTEUR_BO_2 1.24
+
+#define PERCENTAGE_DEADBAND 0
 #define DEAD_ZONE   1.3   //tension min qui fait tourner le moteur A MESURER
 #define COEF_MOT_BO 0.65//0.428571    //  250*12/7000
 //#define VMIN        1//0.3   //arreter les moteurs si la commande trop faible
@@ -183,7 +216,7 @@
 #define MAX_ERROR_A     0.05//0.02//0.01//0.01rad ~= 0.57°
 #define MAX_SPEED_STOP  5 // ENCODER_WHEEL_RADIUS    //rad/s -> 5mm/s
 
-#define N_ASSERV        10  //nombre d'itérations entre 2 boucles d'asserv'
+#define N_ASSERV        20  //nombre d'itérations entre 2 boucles d'asserv'
 #define DIST_AIM_POINT  50  //distance au dessus de laquelle le robot vise le point final
 //#define SMOOTHING_FACTOR    0.2
 //#define N_SMOOTHING     5

@@ -66,6 +66,7 @@ double tf;
 uint8_t finalPoint = 1;
 
 volatile PID pidSpeedLeft, pidSpeedRight, pidDistance, pidAngle;
+volatile PID pidSpeed0, pidSpeed1, pidSpeed2;
 int state = 0;
 int R,L;
 
@@ -137,13 +138,31 @@ extern uint16_t start;
 
 extern uint16_t iD2,iF2;
 
-volatile uint8_t verbose = 1;
+volatile uint8_t verbose = 0;
+
+volatile int16_t tick0 = 0;
+volatile int16_t tick1 = 0;
+volatile int16_t tick2 = 0;
 
 int main(){
     initClock(); //Clock 140 MHz
-    initGPIO(); //Led + PWM en TOR Ok
-    initTimer();    //delay_ms ok
+    initGPIO();
     initPWM();
+    //initQEI();
+    initDMA();
+    initUART();
+    //initAX12();
+    initInt();    
+    
+    initPID(&pidSpeed0,KP_SPEED_0,KI_SPEED_0,KD_SPEED_0,BIAS_SPEED_0,0,T_SPEED_0,0,0,SMOOTHING_FACTOR_SPEED_0,SATURATION_SPEED_0);
+    initPID(&pidSpeed1,KP_SPEED_1,KI_SPEED_1,KD_SPEED_1,BIAS_SPEED_1,0,T_SPEED_1,0,0,SMOOTHING_FACTOR_SPEED_1,SATURATION_SPEED_1);
+    initPID(&pidSpeed2,KP_SPEED_2,KI_SPEED_2,KD_SPEED_2,BIAS_SPEED_2,0,T_SPEED_2,0,0,SMOOTHING_FACTOR_SPEED_2,SATURATION_SPEED_2);
+
+    initTimer();
+    //initUS();
+    initADC();
+    //initSPI();
+    
     
     /*
     LATBbits.LATB10 = 1;    //PWM_ASS_0
@@ -159,6 +178,129 @@ int main(){
     
     //uint16_t w = 0;
     //uint16_t w2 = 0;
+    
+    initPWM();
+    int iLed = 0;
+    while(!verbose){
+        CheckMessages();
+    }
+    /*while(1){
+        plot(1,(uint32_t)((int32_t)(tick0)));
+        delay_ms(10);
+        CheckMessages();
+    }*/
+    double iMotor = 0;
+    int16_t saveTick0 = tick0;
+    int16_t saveTick1 = tick1;
+    int16_t saveTick2 = tick2;
+    /*while(1){
+        delay_ms(1000);
+        sendLog("hello\n");
+    }*/
+    IEC0bits.T1IE = 1;
+    while(1){
+        setSetPoint(&pidSpeed0,1);
+        setSetPoint(&pidSpeed1,1);
+        setSetPoint(&pidSpeed2,1);
+        delay_ms(2000);
+        setSetPoint(&pidSpeed0,0);
+        setSetPoint(&pidSpeed1,0);
+        setSetPoint(&pidSpeed2,0);
+        delay_ms(2000);
+    }
+    while(1){
+        for(iMotor = 10; iMotor < 50; iMotor+=0.02){
+            delay_ms(20);
+            int32_t s0 = tick0 - saveTick0;
+            int32_t s1 = tick1 - saveTick1;
+            int32_t s2 = tick2 - saveTick2;
+            saveTick0 = tick0;
+            saveTick1 = tick1;
+            saveTick2 = tick2;
+            motor(0,iMotor);
+            motor(1,iMotor);
+            motor(2,iMotor);
+            plot(1,(uint32_t)((int32_t)(iMotor*100)));
+            plot(2,(uint32_t)((int32_t)(s0)));
+            plot(3,(uint32_t)((int32_t)(s1)));
+            plot(4,(uint32_t)((int32_t)(s2)));
+            plot(5,(uint32_t)((int32_t)(PWM_0)));
+        }
+        sendMotor(0,0,0);
+        delay_ms(2000);
+        for(iMotor = 0; iMotor >-50; iMotor--){
+            delay_ms(100);
+            int32_t s0 = tick0 - saveTick0;
+            int32_t s1 = tick1 - saveTick1;
+            int32_t s2 = tick2 - saveTick2;
+            saveTick0 = tick0;
+            saveTick1 = tick1;
+            saveTick2 = tick2;
+            motor(0,iMotor);
+            motor(1,iMotor);
+            motor(2,iMotor);
+            plot(1,(uint32_t)((int32_t)(iMotor*10)));
+            plot(2,(uint32_t)((int32_t)(s0)));
+            plot(3,(uint32_t)((int32_t)(s1)));
+            plot(4,(uint32_t)((int32_t)(s2)));
+        }
+        sendMotor(0,0,0);
+        delay_ms(2000);
+    }
+    /*while(1){
+        plot(1,(uint32_t)((int32_t)(millis())));
+        delay_ms(50);
+    }*/
+    /*for(iMotor = 0; iMotor < 100; iMotor++){
+            delay_ms(20);
+            int32_t s0 = tick0 - saveTick0;
+            int32_t s1 = tick1 - saveTick1;
+            int32_t s2 = tick2 - saveTick2;
+            saveTick0 = tick0;
+            saveTick1 = tick1;
+            saveTick2 = tick2;
+            motor(0,iMotor);
+            motor(1,iMotor);
+            motor(2,iMotor);
+            plot(1,(uint32_t)((int32_t)(iMotor)));
+            plot(2,(uint32_t)((int32_t)(s0)));
+            plot(3,(uint32_t)((int32_t)(s1)));
+            plot(4,(uint32_t)((int32_t)(s2)));
+        }
+        for(iMotor = 100; iMotor > -100; iMotor--){
+            delay_ms(20);
+            int32_t s0 = tick0 - saveTick0;
+            int32_t s1 = tick1 - saveTick1;
+            int32_t s2 = tick2 - saveTick2;
+            saveTick0 = tick0;
+            saveTick1 = tick1;
+            saveTick2 = tick2;
+            motor(0,iMotor);
+            motor(1,iMotor);
+            motor(2,iMotor);
+            plot(1,(uint32_t)((int32_t)(iMotor)));
+            plot(2,(uint32_t)((int32_t)(s0)));
+            plot(3,(uint32_t)((int32_t)(s1)));
+            plot(4,(uint32_t)((int32_t)(s2)));
+        }
+        for(iMotor = -100; iMotor < 0; iMotor++){
+            delay_ms(20);
+            int32_t s0 = tick0 - saveTick0;
+            int32_t s1 = tick1 - saveTick1;
+            int32_t s2 = tick2 - saveTick2;
+            saveTick0 = tick0;
+            saveTick1 = tick1;
+            saveTick2 = tick2;
+            motor(0,iMotor);
+            motor(1,iMotor);
+            motor(2,iMotor);
+            plot(1,(uint32_t)((int32_t)(iMotor)));
+            plot(2,(uint32_t)((int32_t)(s0)));
+            plot(3,(uint32_t)((int32_t)(s1)));
+            plot(4,(uint32_t)((int32_t)(s2)));
+        }
+    sendMotor(0,0,0);*/
+    
     while(1){   /*Chenillard*/
         LATFbits.LATF5  = 0;
         LATGbits.LATG3  = 1;
@@ -169,9 +311,11 @@ int main(){
         LATFbits.LATF4  = 0;
         LATFbits.LATF5  = 1;
         delay_ms(100);
+        CheckMessages();
+        //sendLog("hello there =) !\n");
     }
-    initPWM();
-    int iLed = 0;
+    
+    
     while(1){
         iLed++;
         CheckMessages();
@@ -191,15 +335,6 @@ int main(){
         }
     }
     
-    //initPWM();
-    //initQEI();
-    //initDMA();
-    //initUART();
-    //initAX12();
-    //initInt();
-    //initUS();
-    //initADC();
-    //initSPI();
     
     
     x = 0;
@@ -227,7 +362,7 @@ int main(){
     POS1CNTL = 0x0000;
     POS2CNTL = 0x0000;
     
-    initAllPID(&pidSpeedLeft, &pidSpeedRight, &pidDistance, &pidAngle);
+    //initAllPID(&pidSpeedLeft, &pidSpeedRight, &pidDistance, &pidAngle);
     initTimer();
     state = 1;
     

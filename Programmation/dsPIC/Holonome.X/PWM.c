@@ -53,13 +53,11 @@ void initPWM2(){           //20kHz
     SPHASE2 = 7000;        //Period of PWM2L
     PDC2 = 0;               //Duty cycle of PWM2H
     SDC2 = 0;               //Duty cycle of PWM2L
-    //IOCON2bits.PENH = 1;    //PWMx module controls the PWMxH pin
-    //IOCON2bits.PENL = 1;    //PWMx module controls the PWMxL pin
-    IOCON2bits.PENH = 0;    //PWMx module controls the PWMxH pin
-    IOCON2bits.PENL = 0;    //PWMx module controls the PWMxL pin
+    IOCON2bits.PENH = 1;    //PWMx module controls the PWMxH pin
+    IOCON2bits.PENL = 1;    //PWMx module controls the PWMxL pin
     IOCON2bits.PMOD = 0b11; //PWMx I/O pin pair is in the True Independent Output mode
     PWMCON2bits.ITB = 1;    //PHASEx register provides the time base period for this PWMx generator
-    PWMCON2bits.MTBS = 0;   //PWMx generator uses the primary master time base  (1/1)
+    PWMCON2bits.MTBS = 1;   //PWMx generator uses the primary master time base  (1/1)
     FCLCON2 = 0x0003;       //Fault input is disabled
     SENS_ACT_0 = 1;
     SENS_ACT_1 = 1;
@@ -75,7 +73,7 @@ void initPWM3(){           //20kHz
     IOCON3bits.PENL = 1;    //PWMx module controls the PWMxL pin
     IOCON3bits.PMOD = 0b11; //PWMx I/O pin pair is in the True Independent Output mode
     PWMCON3bits.ITB = 1;    //PHASEx register provides the time base period for this PWMx generator
-    PWMCON3bits.MTBS = 0;   //PWMx generator uses the primary master time base  (1/1)
+    PWMCON3bits.MTBS = 1;   //PWMx generator uses the primary master time base  (1/1)
     FCLCON3 = 0x0003;       //Fault input is disabled
 }
 void initPWM4(){           //50Hz for serovomotors
@@ -117,8 +115,12 @@ void initPWM6(){           //50Hz for serovomotors
     FCLCON6 = 0x0003;       //Fault input is disabled
 }
 
-void motor(uint8_t id, char value){
+void motor(uint8_t id, double value){
     double dval = (double)value;
+    if(dval > 0)
+        dval += PERCENTAGE_DEADBAND;
+    if(dval < 0)
+        dval -= PERCENTAGE_DEADBAND;
     dval = dval / 12.5; // [-100;100]% -> [-8;8]V
     switch(id){
         case 0:
@@ -135,6 +137,7 @@ void motor(uint8_t id, char value){
     }
 }
 void sendMotor0(double value){
+    //value = value * CORRECTEUR_BO_0;
     if(value <= -VSAT){
         SENS_0 = BACKWARD;
         PWM_0 = PWM_PR_0 * (VSAT / VBAT);
@@ -153,6 +156,7 @@ void sendMotor0(double value){
     }
 }
 void sendMotor1(double value){
+    //value = value * CORRECTEUR_BO_1;
     if(value <= -VSAT){
         SENS_1 = BACKWARD;
         PWM_1 = PWM_PR_1 * (VSAT / VBAT);
@@ -171,6 +175,7 @@ void sendMotor1(double value){
     }
 }
 void sendMotor2(double value){
+    //value = value * CORRECTEUR_BO_2;
     if(value <= -VSAT){
         SENS_2 = BACKWARD;
         PWM_2 = PWM_PR_2 * (VSAT / VBAT);
@@ -192,4 +197,26 @@ void sendMotor(double val0, double val1, double val2){
     sendMotor0(val0);
     sendMotor1(val1);
     sendMotor2(val2);
+}
+void testMotor(){
+    int iMotor = 0;
+    for(iMotor = 0; iMotor < 100; iMotor++){
+            motor(0,iMotor);
+            motor(1,iMotor);
+            motor(2,iMotor);
+            delay_ms(20);
+        }
+        for(iMotor = 100; iMotor > -100; iMotor--){
+            motor(0,iMotor);
+            motor(1,iMotor);
+            motor(2,iMotor);
+            delay_ms(20);
+        }
+        for(iMotor = -100; iMotor < 0; iMotor++){
+            motor(0,iMotor);
+            motor(1,iMotor);
+            motor(2,iMotor);
+            delay_ms(20);
+        }
+    sendMotor(0,0,0);
 }

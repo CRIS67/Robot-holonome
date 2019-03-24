@@ -14,6 +14,7 @@
 extern double xc;
 extern int state;
 extern PID pidAngle, pidDistance, pidSpeedLeft, pidSpeedRight;
+extern volatile PID pidSpeed0, pidSpeed1, pidSpeed2;
 extern int R, L;
 extern volatile double US[NB_US];
 extern volatile double x;
@@ -367,63 +368,63 @@ void CheckMessages(){
                     uint32_t value = ((uint32_t)RxDMABuffer[iArg3] << 24) + ((uint32_t)RxDMABuffer[iArg4] << 16) + ((uint32_t)RxDMABuffer[iArg5] << 8) + RxDMABuffer[iArg6];
                     switch (var) {
                         case CODE_VAR_P_SPEED_L:
-                            pidSpeedLeft.Kp = (double)value / COEF_SCALE_PID;
+                            pidSpeed0.Kp = (double)value / COEF_SCALE_PID;
                             sendLog("Changed P1 : speed left to ");
                             //sendLog(itoa((int)(pidSpeedLeft.Kp*COEF_SCALE_PID)));
-                            sendLog(dtoa(pidSpeedLeft.Kp));
+                            sendLog(dtoa(pidSpeed0.Kp));
                             sendLog("\n");
                             //sendLog(" / 1000\n");
                             break;
                         case CODE_VAR_I_SPEED_L:
                             value = ((uint32_t)RxDMABuffer[iArg3] << 24) + ((uint32_t)RxDMABuffer[iArg4] << 16) + ((uint32_t)RxDMABuffer[iArg5] << 8) + RxDMABuffer[iArg6];
-                            pidSpeedLeft.Ki = (double)value / COEF_SCALE_PID;
+                            pidSpeed0.Ki = (double)value / COEF_SCALE_PID;
                             sendLog("Changed I1 : speed left to ");
                             //sendLog(itoa((int)(pidSpeedLeft.Ki*COEF_SCALE_PID)));
-                            sendLog(dtoa(pidSpeedLeft.Ki));
+                            sendLog(dtoa(pidSpeed0.Ki));
                             sendLog("\n");
                             //sendLog(" / 1000\n");
                             break;
                         case CODE_VAR_D_SPEED_L:
                             value = ((uint32_t)RxDMABuffer[iArg3] << 24) + ((uint32_t)RxDMABuffer[iArg4] << 16) + ((uint32_t)RxDMABuffer[iArg5] << 8) + RxDMABuffer[iArg6];
-                            pidSpeedLeft.Kd = (double)value / COEF_SCALE_PID;
+                            pidSpeed0.Kd = (double)value / COEF_SCALE_PID;
                             sendLog("Changed D1 : speed left to ");
                             //sendLog(itoa((int)(pidSpeedLeft.Kd*1000)));
-                            sendLog(dtoa(pidSpeedLeft.Kd));
+                            sendLog(dtoa(pidSpeed0.Kd));
                             sendLog("\n");
                             //sendLog(" / 1000\n");
                             break;
                         case CODE_VAR_P_SPEED_R:
                             value = ((uint32_t)RxDMABuffer[iArg3] << 24) + ((uint32_t)RxDMABuffer[iArg4] << 16) + ((uint32_t)RxDMABuffer[iArg5] << 8) + RxDMABuffer[iArg6];
-                            pidSpeedRight.Kp = (double)value / COEF_SCALE_PID;
+                            pidSpeed1.Kp = (double)value / COEF_SCALE_PID;
                             sendLog("Changed P2 : speed right to ");
-                            sendLog(dtoa(pidSpeedRight.Kp));
+                            sendLog(dtoa(pidSpeed1.Kp));
                             sendLog("\n");
                             break;
                         case CODE_VAR_I_SPEED_R:
                             value = ((uint32_t)RxDMABuffer[iArg3] << 24) + ((uint32_t)RxDMABuffer[iArg4] << 16) + ((uint32_t)RxDMABuffer[iArg5] << 8) + RxDMABuffer[iArg6];
-                            pidSpeedRight.Ki = (double)value / COEF_SCALE_PID;
+                            pidSpeed1.Ki = (double)value / COEF_SCALE_PID;
                             sendLog("Changed I2 : speed right to ");
-                            sendLog(dtoa(pidSpeedRight.Ki));
+                            sendLog(dtoa(pidSpeed1.Ki));
                             sendLog("\n");
                             break;
                         case CODE_VAR_D_SPEED_R:
                             value = ((uint32_t)RxDMABuffer[iArg3] << 24) + ((uint32_t)RxDMABuffer[iArg4] << 16) + ((uint32_t)RxDMABuffer[iArg5] << 8) + RxDMABuffer[iArg6];
-                            pidSpeedRight.Kd = (double)value / COEF_SCALE_PID;
+                            pidSpeed1.Kd = (double)value / COEF_SCALE_PID;
                             sendLog("Changed D2 : speed right to ");
-                            sendLog(dtoa(pidSpeedRight.Kd));
+                            sendLog(dtoa(pidSpeed1.Kd));
                             sendLog("\n");
                             break;
                         case CODE_VAR_P_DISTANCE:
                             value = ((uint32_t)RxDMABuffer[iArg3] << 24) + ((uint32_t)RxDMABuffer[iArg4] << 16) + ((uint32_t)RxDMABuffer[iArg5] << 8) + RxDMABuffer[iArg6];
-                            pidDistance.Kp = (double)value / COEF_SCALE_PID;
+                            pidSpeed2.Kp = (double)value / COEF_SCALE_PID;
                             break;
                         case CODE_VAR_I_DISTANCE:
                             value = ((uint32_t)RxDMABuffer[iArg3] << 24) + ((uint32_t)RxDMABuffer[iArg4] << 16) + ((uint32_t)RxDMABuffer[iArg5] << 8) + RxDMABuffer[iArg6];
-                            pidDistance.Ki = (double)value / COEF_SCALE_PID;
+                            pidSpeed2.Ki = (double)value / COEF_SCALE_PID;
                             break;
                         case CODE_VAR_D_DISTANCE:
                             value = ((uint32_t)RxDMABuffer[iArg3] << 24) + ((uint32_t)RxDMABuffer[iArg4] << 16) + ((uint32_t)RxDMABuffer[iArg5] << 8) + RxDMABuffer[iArg6];
-                            pidDistance.Kd = (double)value / COEF_SCALE_PID;
+                            pidSpeed2.Kd = (double)value / COEF_SCALE_PID;
                             break;
                         case CODE_VAR_P_ANGLE:
                             value = ((uint32_t)RxDMABuffer[iArg3] << 24) + ((uint32_t)RxDMABuffer[iArg4] << 16) + ((uint32_t)RxDMABuffer[iArg5] << 8) + RxDMABuffer[iArg6];
@@ -474,6 +475,9 @@ void CheckMessages(){
                 switch (var) {
                     case VAR_STATE:
                         //sendLog(itoa(state));
+                        break;
+                    case CODE_VAR_BAT:
+                        sendLog(itoa(VBAT*10));
                         break;
                     case CODE_VAR_ALLPID:
                         sendAllPID();
@@ -785,17 +789,17 @@ void plot(uint8_t id,uint32_t value){
     send(buffer,TX_SIZE_PLOT + 1);
 }
 void sendAllPID(){
-    sendVar32(CODE_VAR_P_SPEED_L,(uint32_t)(pidSpeedLeft.Kp*COEF_SCALE_PID));
-    sendVar32(CODE_VAR_I_SPEED_L,(uint32_t)(pidSpeedLeft.Ki*COEF_SCALE_PID));
-    sendVar32(CODE_VAR_D_SPEED_L,(uint32_t)(pidSpeedLeft.Kd*COEF_SCALE_PID));
+    sendVar32(CODE_VAR_P_SPEED_L,(uint32_t)(pidSpeed0.Kp*COEF_SCALE_PID));
+    sendVar32(CODE_VAR_I_SPEED_L,(uint32_t)(pidSpeed0.Ki*COEF_SCALE_PID));
+    sendVar32(CODE_VAR_D_SPEED_L,(uint32_t)(pidSpeed0.Kd*COEF_SCALE_PID));
     
-    sendVar32(CODE_VAR_P_SPEED_R,(uint32_t)(pidSpeedRight.Kp*COEF_SCALE_PID));
-    sendVar32(CODE_VAR_I_SPEED_R,(uint32_t)(pidSpeedRight.Ki*COEF_SCALE_PID));
-    sendVar32(CODE_VAR_D_SPEED_R,(uint32_t)(pidSpeedRight.Kd*COEF_SCALE_PID));
+    sendVar32(CODE_VAR_P_SPEED_R,(uint32_t)(pidSpeed1.Kp*COEF_SCALE_PID));
+    sendVar32(CODE_VAR_I_SPEED_R,(uint32_t)(pidSpeed0.Ki*COEF_SCALE_PID));
+    sendVar32(CODE_VAR_D_SPEED_R,(uint32_t)(pidSpeed0.Kd*COEF_SCALE_PID));
     
-    sendVar32(CODE_VAR_P_DISTANCE,(uint32_t)(pidDistance.Kp*COEF_SCALE_PID));
-    sendVar32(CODE_VAR_I_DISTANCE,(uint32_t)(pidDistance.Ki*COEF_SCALE_PID));
-    sendVar32(CODE_VAR_D_DISTANCE,(uint32_t)(pidDistance.Kd*COEF_SCALE_PID));
+    sendVar32(CODE_VAR_P_DISTANCE,(uint32_t)(pidSpeed2.Kp*COEF_SCALE_PID));
+    sendVar32(CODE_VAR_I_DISTANCE,(uint32_t)(pidSpeed2.Ki*COEF_SCALE_PID));
+    sendVar32(CODE_VAR_D_DISTANCE,(uint32_t)(pidSpeed2.Kd*COEF_SCALE_PID));
     
     sendVar32(CODE_VAR_P_ANGLE,(uint32_t)(pidAngle.Kp*COEF_SCALE_PID));
     sendVar32(CODE_VAR_I_ANGLE,(uint32_t)(pidAngle.Ki*COEF_SCALE_PID));

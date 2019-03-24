@@ -77,7 +77,8 @@ long double compute(volatile PID *pid, long double processVariable){
     else if(pid->output < -pid->saturation)
         pid->output = -pid->saturation;
     
-    pid->sumI = (pid->output - pid->bias - outputP - outputD) / pid->Ki;    //Anti-Windup
+    if(pid->Ki != 0)
+        pid->sumI = (pid->output - pid->bias - outputP - outputD) / pid->Ki;    //Anti-Windup
     
     pid->prevError = error;
     pid->prevSmoothError = smoothError;

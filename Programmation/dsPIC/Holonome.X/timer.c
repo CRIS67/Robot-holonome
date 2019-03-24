@@ -31,6 +31,7 @@ extern volatile double US[NB_US];
 unsigned int n, n2;
 
 extern volatile PID pidSpeedLeft, pidSpeedRight, pidDistance, pidAngle;
+extern volatile PID pidSpeed0, pidSpeed1, pidSpeed2;
 
 double volatile prevCommandeL;
 double volatile prevCommandeR;
@@ -111,12 +112,24 @@ double speedMax;
 
 double dist1;
 // </editor-fold>
+
+extern volatile int16_t tick0;
+extern volatile int16_t tick1;
+extern volatile int16_t tick2;
+
+volatile int16_t saveTick0 = 0;
+volatile int16_t saveTick1 = 0;
+volatile int16_t saveTick2 = 0;
+
+volatile long double s0 = 0;
+volatile long double s1 = 0;
+volatile long double s2 = 0;
+
 // </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="Init">
-
 void initTimer() {
-    //initTimer1(); //Asserv + miscellanous
+    initTimer1(); //Asserv + miscellanous
     initTimer2();   //delay
     //initTimer3();
     //initTimer4();//US
@@ -134,7 +147,6 @@ void initTimer() {
     i_us = 0;
     n_us = 0;
 }
-
 void initTimer1() { //Timer 1 -> asserv' interrupt
     T1CONbits.TON = 0; //disable timer
     TMR1 = 0; // Clear timer register
@@ -147,7 +159,6 @@ void initTimer1() { //Timer 1 -> asserv' interrupt
     IEC0bits.T1IE = 1; //Enable interrupt
     T1CONbits.TON = 1; //enable Timer1
 }
-
 void initTimer2() { //Timer 2 -> timing (delay_ms,delay_us,millis,micros)
     /*32bits mode*/
     /*TMR2 = LSB & TMR3 = MSB*/
@@ -175,7 +186,6 @@ void initTimer2() { //Timer 2 -> timing (delay_ms,delay_us,millis,micros)
 
     T2CONbits.TON = 1; //enable Timer1
 }
-
 void initTimer3() { //Timer 3   -> 20탎 delay
     /*T3CONbits.TON = 0;      //disable timer
     TMR3 = 0;               // Clear timer register
@@ -188,7 +198,6 @@ void initTimer3() { //Timer 3   -> 20탎 delay
     IEC0bits.T3IE = 1;      //Enable interrupt
     T3CONbits.TON = 0;      //disable Timer3*/
 }
-
 void initTimer4() { //Timer 4   -> count US time
     T4CONbits.TON = 0; //disable timer
     TMR4 = 0; // Clear timer register
@@ -201,7 +210,6 @@ void initTimer4() { //Timer 4   -> count US time
     IEC1bits.T4IE = 0; //Enable interrupt
     T4CONbits.TON = 1; //enable Timer4
 }
-
 void initTimer5() { //Timer 5   -> 20탎 delay
     T5CONbits.TON = 0; //disable timer
     TMR5 = 0; // Clear timer register
@@ -218,6 +226,99 @@ void initTimer5() { //Timer 5   -> 20탎 delay
 
 // <editor-fold defaultstate="collapsed" desc="Timer interrupts">
 void __attribute__((interrupt, no_auto_psv)) _T1Interrupt(void) {
+    IFS0bits.T1IF = 0; //Clear Timer1 interrupt flag
+    n++;
+    if (n >= N_ASSERV) {//N_asserv = 20 => T = 0.02s
+        n = 0;
+        long double s0 = (tick0 - saveTick0) * 50;   // % 0.02s
+        saveTick0 = tick0;
+        long double s1 = (tick1 - saveTick1) * 50;   // % 0.02s
+        saveTick1 = tick1;
+        long double s2 = (tick2 - saveTick2) * 50;   // % 0.02s
+        saveTick2 = tick2;
+        
+        
+        s0 = s0 / 1496.88;
+        s1 = s1 / 1496.88;
+        s2 = s2 / 1496.88;
+        
+        long double c0 = compute(&pidSpeed0,s0);
+        long double c1 = compute(&pidSpeed1,s1);
+        long double c2 = compute(&pidSpeed2,s2);
+        //compute(&pidSpeed0,0);
+        
+        
+        //double commandeL = compute(&pidSpeedLeft, speedL);
+        
+        sendMotor((double)c0,(double)c1,(double)c2);
+        //plot(2,(uint32_t)((int32_t)(s0)));
+        plot(2,(uint32_t)((int32_t)(s0*1000)));
+        plot(3,(uint32_t)((int32_t)(s1*1000)));
+        plot(4,(uint32_t)((int32_t)(s2*1000)));
+        //sendLog("a\n");
+    }  
+}
+
+/*void __attribute__((interrupt,no_auto_psv)) _T2Interrupt(void){
+    IFS0bits.T2IF = 0; //Clear Timer1 interrupt flag
+}*/
+void __attribute__((interrupt, no_auto_psv)) _T3Interrupt(void) {
+    IFS0bits.T3IF = 0; //Clear Timer1 interrupt flag
+    timer2Overflow++;
+}
+void __attribute__((interrupt, no_auto_psv)) _T5Interrupt(void) {// _T3Interrupt(void){
+    IFS1bits.T5IF = 0;
+    T5CONbits.TON = 0; //disable Timer3
+    TMR5 = 0; //reset Timer3
+    TRIG_US_0 = 0;
+    TRIG_US_1 = 0;
+    TRIG_US_2 = 0;
+    TRIG_US_3 = 0;
+    TRIG_US_4 = 0;
+    TRIG_US_5 = 0;
+}
+// </editor-fold>
+
+unsigned long micros(){
+    IEC0bits.T3IE = 0;
+    uint32_t saveTMR2 = TMR2;
+    uint32_t ret = TMR3;
+    ret = ret << 16;
+    ret = ret + saveTMR2;
+    ret = ret / 70;
+    uint32_t t2of = timer2Overflow;
+    t2of = t2of * 60000000UL;
+    ret = ret + t2of;
+    IEC0bits.T3IE = 1;
+    return ret;
+}
+unsigned long millis(){
+    IEC0bits.T3IE = 0;
+    uint32_t saveTMR2 = TMR2;
+    uint32_t ret = TMR3;
+    ret = ret << 16;
+    ret = ret + saveTMR2;
+    ret = ret / 70000; //140MHz
+    //ret = ret / 3684;   //7.3728Mhz
+    uint32_t t2of = timer2Overflow;
+    t2of = t2of * 60000UL;    //140Mhz
+    //t2of = t2of * 3157;     //7.3728Mhz
+    ret = ret + t2of;
+    IEC0bits.T3IE = 1;
+    return ret;
+}
+
+void delay_us(uint32_t delay){
+   uint32_t tick = micros();
+   while(micros() - tick < delay);
+}
+void delay_ms(uint32_t delay){
+    uint32_t tick = millis();
+    while(millis() - tick < delay);
+}
+
+//void __attribute__((interrupt, no_auto_psv)) save_T1Interrupt(void) {
+void save_T1Interrupt(void) {
     IFS0bits.T1IF = 0; //Clear Timer1 interrupt flag
     // <editor-fold defaultstate="collapsed" desc="Calcul position ">
     
@@ -629,58 +730,4 @@ void __attribute__((interrupt, no_auto_psv)) _T1Interrupt(void) {
         print("\n");*/
     }
     // </editor-fold>
-}
-
-/*void __attribute__((interrupt,no_auto_psv)) _T2Interrupt(void){
-    IFS0bits.T2IF = 0; //Clear Timer1 interrupt flag
-}*/
-void __attribute__((interrupt, no_auto_psv)) _T3Interrupt(void) {
-    IFS0bits.T3IF = 0; //Clear Timer1 interrupt flag
-    timer2Overflow++;
-}
-
-void __attribute__((interrupt, no_auto_psv)) _T5Interrupt(void) {// _T3Interrupt(void){
-    IFS1bits.T5IF = 0;
-    T5CONbits.TON = 0; //disable Timer3
-    TMR5 = 0; //reset Timer3
-    TRIG_US_0 = 0;
-    TRIG_US_1 = 0;
-    TRIG_US_2 = 0;
-    TRIG_US_3 = 0;
-    TRIG_US_4 = 0;
-    TRIG_US_5 = 0;
-}
-// </editor-fold>
-
-
-unsigned long micros(){
-    uint32_t ret = TMR3;
-    ret = ret << 16;
-    ret = ret + TMR2;
-    ret = ret / 70;
-    uint32_t t2of = timer2Overflow;
-    t2of = t2of * 60000000UL;
-    ret = ret + t2of;
-    return ret;
-}
-unsigned long millis(){
-    uint32_t ret = TMR3;
-    ret = ret << 16;
-    ret = ret + TMR2;
-    ret = ret / 70000; //140MHz
-    //ret = ret / 3684;   //7.3728Mhz
-    uint32_t t2of = timer2Overflow;
-    t2of = t2of * 60000UL;    //140Mhz
-    //t2of = t2of * 3157;     //7.3728Mhz
-    ret = ret + t2of;
-    return ret;
-}
-
-void delay_us(uint32_t delay){
-   uint32_t tick = micros();
-   while(micros() - tick < delay);
-}
-void delay_ms(uint32_t delay){
-    uint32_t tick = millis();
-    while(millis() - tick < delay);
 }
