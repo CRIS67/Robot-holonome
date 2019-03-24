@@ -74,6 +74,14 @@ void DsPIC::stop(){
         serialPutchar (fd, buffer[i]);
     }
 }
+
+/*
+Tells the robot to go to point(x,y) 
+    - x : x mm
+    - y : y mm
+    - rev : reverse, allows to the point in reverse (useless for holonome)
+    - relative : activates relative mode, the reference is the actual position of the robot
+*/
 void DsPIC::go(int16_t x, int16_t y,unsigned char rev, unsigned char relative){
     uint8_t option = 0;
     if(rev){
@@ -98,6 +106,13 @@ void DsPIC::go(int16_t x, int16_t y,unsigned char rev, unsigned char relative){
         serialPutchar (fd, buffer[i]);
     }
 }
+
+/*
+Tells the robot to go to point(x,y) 
+    - t : angle in degrees   
+    - rev : reverse, allows to the point in reverse (useless for holonome)
+    - relative : activates relative mode, the reference is the actual position of the robot
+*/
 void DsPIC::turn(int16_t t,unsigned char rev, unsigned char relative){
     uint8_t option = 0;
     if(rev){
@@ -198,61 +213,5 @@ std::string DsPIC::async_read(){
         //delayMicroseconds(5);
     }
 
-
-	/*double delayUs = 5;
-	int n = serialDataAvail(fd);
-	while(n < 1){
-		delayMicroseconds(delayUs);
-		n = serialDataAvail(fd);
-	}
- 	int foo = serialGetchar(fd);
- 	while(foo == -1){
- 		delayMicroseconds(delayUs);
- 		foo = serialGetchar(fd);
- 	}
-    uint8_t RxSize = foo;//serialGetchar(fd);
-    //uint8_t checksum = RxSize;
-    //uint8_t *RxBuf = (uint8_t*)(malloc(RxSize * sizeof(uint8_t)));
-    //std::vector<uint8_t> RxBuf(RxSize);
-    std::vector<uint8_t> RxBuf;
-    RxBuf.push_back(RxSize);
-	//Test1
-	n = serialDataAvail(fd);
-	while(n < RxSize){
-		delayMicroseconds(delayUs);
-		n = serialDataAvail(fd);
-	}
-    for(int i = 0; i < RxSize; i++){
-    	foo = serialGetchar(fd);
-    	while(foo == -1){
-    		delayMicroseconds(delayUs);
- 			foo = serialGetchar(fd);
- 		}
-        RxBuf.push_back(foo);
-        delayMicroseconds(delayUs);
-        //delayMicroseconds(5);
-    }*/
-	//Test2
-	/*
-	for(int i = 0; i < RxSize; i++){
-    	foo = serialGetchar(fd);
-    	while(foo == -1){
- 			foo = serialGetchar(fd);
- 		}
-        RxBuf.push_back(foo);
-        delayMicroseconds(delayUs);
-    }*/
-	//Test3
-	/*n = serialDataAvail(fd);
-	while(n < RxSize){
-		delayMicroseconds(delayUs);
-		n = serialDataAvail(fd);
-	}
-	uint8_t *RxTab = (uint8_t*)(malloc(RxSize * sizeof(uint8_t)));
-	if (read (fd, RxTab, RxSize) != RxSize)
-		puts("READ ERROR in function DsPIC::read");
-	for(int i = 0; i < RxSize; i++){
-		RxBuf.push_back(RxTab[i]);
-    }*/
     return RxBuf;
 }

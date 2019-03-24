@@ -28,13 +28,6 @@
 #define MASK_OPTION_RELATIVE    0x2
 #define MASK_OPTION_REVERSE     0x1
 
-#define TX_CODE_
-#define TX_CODE_
-#define TX_CODE_
-#define TX_CODE_
-#define TX_CODE_
-
-#define TX_SIZE_
 
 #define CODE_VAR_VERBOSE    5
 

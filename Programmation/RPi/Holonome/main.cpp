@@ -6,6 +6,28 @@
 #include "web.hpp"
 #include "dspic.hpp"
 
+// DStarIncludes 
+#include <utility>
+#include <algorithm>
+#include <cmath>
+#include <bits/stdc++.h>
+#include <limits>
+#include <map>
+#include "mapGeneration.hpp"
+#include "dStartLite.hpp"
+
+//DStarGlobal 
+int mapRows {10};  
+int mapColumns {10};  
+float km {0}; 
+std::vector<std::vector<int>> mapVector;
+ 
+Node startNode = {infinity,infinity,0,std::pair<int,int>(0,0)};
+Node goalNode = {infinity,0,0,std::pair<int,int>(9,9), false};
+
+priorityList uList; // priority List
+mappedNodes knownNodes; // node the robot can see
+
 #define TX_CODE_VAR     1
 #define TX_CODE_LOG     2
 #define TX_CODE_PLOT    3
@@ -43,22 +65,72 @@ int main()
 	dspic.turn(360,0,0);
 	dspic.AX12(1,512);
 	dspic.AX12(3,213);*/
+    std::cout << "Press enter to continue" << std::endl; 
     getchar();
 	dspic.setVar8(CODE_VAR_VERBOSE,1);
 	puts("verbose set to 1");
 
+    /*=============DStarImplementation===================*/
+
+    //dsPic initialization 
+    dspic.start(); 
+
+    // Map Generation 
+    generateMap(mapVector,mapRows,mapColumns); // generates empty map 
+    createRectangle(4, 4, 5, 5, mapVector); // creates a 5x5 obstacle rectangle  at (4,4) 
+    printMap(mapRows, mapColumns, mapVector);
+
+    //DStarLite first run
+    Node lastNode = startNode;
+    initialize(mapVector, knownNodes, uList, startNode, goalNode);
+    goalNode = knownNodes.at(goalNode.coord);
+    computeShortestPath(uList, knownNodes, startNode.coord, goalNode);
+    startNode = knownNodes.at(startNode.coord); // we update the start node
+    goalNode = knownNodes.at(goalNode.coord); // we update the goal node
+
+    while(startNode.coord != goalNode.coord){
+
+        if(startNode.costG == infinity){
+            std::cerr << "NOT KNOWN PATH" << std::endl;
+            break;
+        }
+
+        startNode = bestNode(startNode, knownNodes); // we "move" the robot
+        findPath(randomMap,knownNodes,startNode,goalNode); // prints the path in the terminal 
+        
+        int xSetpoint = startNode.coord.first *30; 
+        int ySetpoint = startNode.coord.second *30; 
+        dspic.go(xSetpoint, ySetpoint,0,0); // we move the robot to the next point
+
+
+        // Debug 
+        std::cout << "Press enter to continue" << std::endl; 
+        getchar();
+    }
+
+    /*=============DStarImplementation===================*/
+
+    std::cout << "Press enter to continue" << std::endl; 
     getchar();
 	dspic.setVar8(CODE_VAR_VERBOSE,0);
 	puts("verbose set to 0");
     
 	//std::cout << dspic.read() << std::endl;
     web.s = "hola ! \n";
+    std::cout << "Press enter to EXIT" << std::endl; 
     getchar();
     puts("exiting ...");
     //pthread_exit(NULL);
 
     return 0;
 }
+
+/*
+Interface between the RPI and DSPIC :
+
+Infinite loop where it waits for the messages from the dspic and it uses-it as a command for : 
+    - ...?
+*/
 void *print(void *ptr) {
    /*long tid;
    tid = (long)threadid;*/
@@ -66,12 +138,17 @@ void *print(void *ptr) {
    //DsPIC *dspic = (DsPIC*)ptr;
    DsPIC *dspic = w->dspic;
    while(1){
-        std::vector<uint8_t> msg = dspic->readMsg();
+
+        std::vector<uint8_t> msg = dspic->readMsg(); // get message from dspic 
         uint8_t checksum = 0;
         for(unsigned int i = 0; i < msg.size() - 1; i++){
             checksum += msg[i];
         }
-        if(checksum != msg[msg.size() - 1]){
+        /*
+        Last element of the message is the checksum 
+        We verify if they are the same 
+        */
+        if(checksum != msg[msg.size() - 1]){ 
             std::cout << "CHECKSUM ERROR !" << std::endl;
 			std::cout << "CE dec :";
             for(unsigned int i = 0; i < msg.size(); i++){
