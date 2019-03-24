@@ -16,7 +16,7 @@ void createRectangle(int startX, int startY, int width, int length, std::vector<
 
 	if( ( startX + width >=  mapVector.size()  ) || ( startY + length  >= mapVector[0].size() ) )
 	{
-		std::cerr << "Too big of rectangle :( " std::endl; 
+		std::cerr << "Too big of rectangle :( " << std::endl; 
 		return; 
 	}
 	

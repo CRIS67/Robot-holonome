@@ -96,7 +96,7 @@ int main()
         }
 
         startNode = bestNode(startNode, knownNodes); // we "move" the robot
-        findPath(randomMap,knownNodes,startNode,goalNode); // prints the path in the terminal 
+        findPath(mapVector,knownNodes,startNode,goalNode); // prints the path in the terminal 
         
         int xSetpoint = startNode.coord.first *30; 
         int ySetpoint = startNode.coord.second *30; 
