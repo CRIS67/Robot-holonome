@@ -46,7 +46,7 @@ bool sensorTreatment(int enemyX, int enemyY, int enemyWidth,
 		int x = path.at(i).coord.first; 
 		int y = path.at(i).coord.second; 
 
-		if(mapVector[i][j] == 1)
+		if(mapVector[x][y] == 1)
 		{
 			return true; 
 		}
