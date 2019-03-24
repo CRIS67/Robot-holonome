@@ -14,5 +14,5 @@
 void generateMap(std::vector<std::vector<int>>& mapVector, int mapRows, int mapColumns);
 void createRectangle(int startX, int startY, int width, int length, std::vector<std::vector<int>>& mapVector); 
 void printMap(int mapRows, int mapColumns, std::vector<std::vector<int>>& mapVector);
-void clearMap(std::vector<std::vector<int>>& mapVector)
+void clearMap(std::vector<std::vector<int>>& mapVector);
 #endif // MAPGENERATION_H_INCLUDED
