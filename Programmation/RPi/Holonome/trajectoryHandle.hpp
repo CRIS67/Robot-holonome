@@ -1,7 +1,7 @@
 #ifndef TRAJECTORY_H 
 #define TRAJECTORY_H 
 
-#include "dStarLite.hpp"
+
 #include <vector>
 #include <map>
 #include <vector>
@@ -12,7 +12,7 @@
 #include <bits/stdc++.h>
 #include <limits>
 #include "mapGeneration.hpp"
-
+#include "dStarLite.hpp"
 
 std::vector<Node> pathTreatment(std::vector<Node> path); 
 bool sensorTreatment(int enemyX, int enemyY, int enemyWidth, 

@@ -32,7 +32,7 @@ Node goalNode = {infinity,0,0,std::pair<int,int>(9,9), false};
 priorityList uList; // priority List
 mappedNodes knownNodes; // node the robot can see
 
-const int enemyWidth;; // The distance the enemy takes place on the map, it is represented as a square 
+const int enemyWidth; // The distance the enemy takes place on the map, it is represented as a square 
 std::vector<Node> simplifiedPath; 
 std::vector<Node> completePath; 
 
