@@ -14,7 +14,7 @@
 #include <limits>
 #include <map>
 #include "mapGeneration.hpp"
-#include "dStartLite.hpp"
+#include "dStarLite.hpp"
 
 //DStarGlobal 
 int mapRows {10};  

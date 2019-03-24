@@ -1,4 +1,4 @@
-#include "dStartLite.hpp"
+#include "dStarLite.hpp"
 
 extern float km;
 extern int mapRows, mapColumns, obstaclesNumber;
