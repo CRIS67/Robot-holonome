@@ -34,6 +34,7 @@ mappedNodes knownNodes; // node the robot can see
 
 
 const int enemyWidth = 500; // The distance the enemy takes place on the map, it is represented as a square 
+
 std::vector<Node> simplifiedPath; 
 std::vector<Node> completePath; 
 
