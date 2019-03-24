@@ -1,5 +1,9 @@
-#include "mapGeneration.h"
+#include "mapGeneration.hpp"
 
+
+/*
+Initialize the map
+*/
 void generateMap(std::vector<std::vector<int>>& mapVector, int mapRows, int mapColumns) {
 
 	mapVector.resize(mapRows);
@@ -16,7 +20,7 @@ void createRectangle(int startX, int startY, int width, int length, std::vector<
 
 	if( ( startX + width >=  mapVector.size()  ) || ( startY + length  >= mapVector[0].size() ) )
 	{
-		std::cerr << "Too big of rectangle :( " std::endl; 
+		std::cerr << "Too big of rectangle :( " << std::endl; 
 		return; 
 	}
 
@@ -42,7 +46,7 @@ void printMap(int mapRows, int mapColumns, std::vector<std::vector<int>>& mapVec
 	std::cout << std::endl << std::endl ; 
 }
 
-void clearMap(std::vector<std::vector<int>>& mapVector, std::vector<std::pair<int,int>>& obstaclesCoord){
+void clearMap(std::vector<std::vector<int>>& mapVector){
 
     for(int i = 0 ; i< mapVector.size(); i++){
 

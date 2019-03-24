@@ -14,20 +14,27 @@
 #include <limits>
 #include <map>
 #include "mapGeneration.hpp"
-#include "dStartLite.hpp"
+#include "dStarLite.hpp"
 
 //DStarGlobal 
 int mapRows {10};  
 int mapColumns {10};  
-float km {0}; 
-std::vector<std::vector<int>> mapVector;
+float km {0}; // variable for the D*
+
+std::vector<std::vector<int>> mapVector; // the robot's map 
+
 bool obstacleDetection {false}; 
+bool pointReached {false}; 
  
 Node startNode = {infinity,infinity,0,std::pair<int,int>(0,0)};
 Node goalNode = {infinity,0,0,std::pair<int,int>(9,9), false};
 
 priorityList uList; // priority List
 mappedNodes knownNodes; // node the robot can see
+
+const int enemyWidth;; // The distance the enemy takes place on the map, it is represented as a square 
+std::vector<Node> simplifiedPath; 
+std::vector<Node> completePath; 
 
 #define TX_CODE_VAR     1
 #define TX_CODE_LOG     2
@@ -87,9 +94,10 @@ int main()
     startNode = knownNodes.at(startNode.coord); // we update the start node
     goalNode = knownNodes.at(goalNode.coord); // we update the goal node
 
+    std::vector<Node> completePath = getPath(mapVector, knownNodes, startNode, goalNode); // get the hole path 
     /*
         TO BE IMPLEMENTED 
-        - pathTreatment () set critical points to go to 
+        - simplifiedPath = pathTreatment(getPath) set critical points to go to 
         - create a vector with those points and update them if changes in the map 
     */
 
@@ -107,19 +115,31 @@ int main()
         int ySetpoint = startNode.coord.second *30; 
         dspic.go(xSetpoint, ySetpoint,0,0); // we move the robot to the next point
 
-        /*
-        TO BE IMPLEMENTED 
-        - readSensorValues() 
-        - sensorTreatment() -> determine if we have to update the map 
-        */
-
-        if(obstacleDetection)
+        // Wait until the robot reaches the point
+        while(!pointReached)
         {
-            km = km + distance2(lastNode, startNode);
-            lastNode = startNode;
-            updateMap(knownNodes, mapVector, uList, startNode.coord, goalNode); // we update all the changed nodes
-            computeShortestPath(uList, knownNodes, startNode.coord, goalNode);
+            /*
+            TO BE IMPLEMENTED 
+            - getPointReached() from the dsPic
+            - readSensorValues() 
+            - obstcaleDetection = sensorTreatment() -> determine if we have to update the map 
+            */
+          if(obstacleDetection)
+            {
+                km = km + distance2(lastNode, startNode);
+                lastNode = startNode;
+                updateMap(knownNodes, mapVector, uList, startNode.coord, goalNode); // we update all the changed nodes
+                computeShortestPath(uList, knownNodes, startNode.coord, goalNode);
+                startNode = knownNodes.at(startNode.coord); // we update the start node
+                goalNode = knownNodes.at(goalNode.coord);
 
+                /*
+                TO BE IMPLEMENTED 
+                - simplifiedPath = pathTreatment(getPath()) set critical points to go to 
+                - create a vector with those points and update them if changes in the map 
+                */
+
+            }
         }
 
         // Debug 
