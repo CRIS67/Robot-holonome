@@ -6,6 +6,12 @@ DsPIC::DsPIC(){
 DsPIC::~DsPIC(){
 
 }
+
+/*
+Set the length of the impulse in micro-seconds for a servo 
+    -id : the servoMotor id 
+    - value : impulse length in micro-seconds 
+*/
 void DsPIC::servo(uint8_t id, uint16_t value){
     uint8_t buffer[RX_SIZE_SERVO + 1];
     buffer[0] = RX_SIZE_SERVO;
@@ -21,6 +27,12 @@ void DsPIC::servo(uint8_t id, uint16_t value){
         serialPutchar (fd, buffer[i]);
     }
 }
+
+/*
+Set the length of the impulse in micro-seconds for a  numeric AX12 servoMotor 
+    -id : the servoMotor id 
+    - value : impulse length in micro-seconds 
+*/
 void DsPIC::AX12(uint8_t id, uint16_t value){
     uint8_t buffer[RX_SIZE_AX12 + 1];
     buffer[0] = RX_SIZE_AX12;
@@ -36,6 +48,12 @@ void DsPIC::AX12(uint8_t id, uint16_t value){
         serialPutchar (fd, buffer[i]);
     }
 }
+
+/* 
+Controls the power of a motor and the rotation sense 
+    -id : motor id 
+    -value : between -100 and 100 
+*/
 void DsPIC::motor(uint8_t id, int8_t value){
     uint8_t buffer[RX_SIZE_MOTOR + 1];
     buffer[0] = RX_SIZE_MOTOR;
@@ -50,6 +68,9 @@ void DsPIC::motor(uint8_t id, int8_t value){
         serialPutchar (fd, buffer[i]);
     }
 }
+/*
+not implemented 
+*/
 void DsPIC::start(){
     uint8_t buffer[RX_SIZE_START + 1];
     buffer[0] = RX_SIZE_START;
@@ -62,6 +83,10 @@ void DsPIC::start(){
         serialPutchar (fd, buffer[i]);
     }
 }
+
+/*
+Emergency stop 
+*/
 void DsPIC::stop(){
     uint8_t buffer[RX_SIZE_STOP + 1];
     buffer[0] = RX_SIZE_STOP;
@@ -135,6 +160,10 @@ void DsPIC::turn(int16_t t,unsigned char rev, unsigned char relative){
         serialPutchar (fd, buffer[i]);
     }
 }
+
+/*
+Allows to change the variables in the dspic
+*/
 void DsPIC::setVar32(uint8_t varCode, uint32_t var){
 
     uint8_t buffer[RX_SIZE_SET_32b + 1];
@@ -154,6 +183,10 @@ void DsPIC::setVar32(uint8_t varCode, uint32_t var){
         serialPutchar (fd, buffer[i]);
     }
 }
+
+/*
+Allows to change the variables in the dspic
+*/
 void DsPIC::setVar8(uint8_t varCode, uint8_t var){
 
     uint8_t buffer[RX_SIZE_SET_8b + 1];
@@ -170,6 +203,10 @@ void DsPIC::setVar8(uint8_t varCode, uint8_t var){
         serialPutchar (fd, buffer[i]);
     }
 }
+
+/*
+Get the PID values stored in the dspic 
+*/
 void DsPIC::loadPID(){
     uint8_t buffer[RX_SIZE_GET + 1];
     buffer[0] = RX_SIZE_GET;
@@ -183,6 +220,10 @@ void DsPIC::loadPID(){
         serialPutchar (fd, buffer[i]);
     }
 }
+
+/*
+Returns all the available data in the serial buffer 
+*/
 std::string DsPIC::async_read(){
     std::string s("");
     while (serialDataAvail(fd)){
@@ -190,6 +231,13 @@ std::string DsPIC::async_read(){
     }
     return s;
 }
+
+/*
+Waits until there is "normalized" data available in the serial buffer 
+It checks if the data available is "normalized" and returns-it 
+
+Normalized data = header + payload + checksum 
+*/
  std::vector<uint8_t> DsPIC::readMsg(){
 	//double delayUs = 1000000 / BAUDRATE;	// T = 1/f en µs	(0.5Mbaud => 2µs)
 	
