@@ -6,13 +6,6 @@
 #include "web.hpp"
 #include "dspic.hpp"
 
-#define TX_CODE_VAR     1
-#define TX_CODE_LOG     2
-#define TX_CODE_PLOT    3
-#define CODE_VAR_X      1
-#define CODE_VAR_Y      2
-#define CODE_VAR_T      3
-#define CODE_VAR_RUPT   4
 
 void *print(void *ptr);
 
@@ -43,17 +36,42 @@ int main()
 	dspic.turn(360,0,0);
 	dspic.AX12(1,512);
 	dspic.AX12(3,213);*/
+	/*float f = 42.0;
+	float *ptrF = &f;
+	char *ptrC = (char*)ptrF;
+	std::cout << (int)ptrC[0] << "/" << (int)ptrC[1] << "/" << (int)ptrC[2] << "/" << (int)ptrC[3] << "/" << std::endl;*/
     getchar();
 	dspic.setVar8(CODE_VAR_VERBOSE,1);
 	puts("verbose set to 1");
-
-    getchar();
+	dspic.getVar(CODE_VAR_BAT);
+	char c = 0;
+	char started = 0;
+	while(c != 's'){
+		puts("Press 's' to stop or any other button to start/stop the robot");
+		c = getchar();
+		if(c != 's'){
+			if(!started){
+				started = 1;
+				dspic.start();
+			}
+			else{
+				started = 0;
+				dspic.stop();
+			}
+		}
+	}
+	//dspic.start();
+    //dspic.getVar(CODE_VAR_ODO);
+    //dspic.initPos(1000,1500,0);
+	//getchar();
+	//dspic.stop();
+	//getchar();
 	dspic.setVar8(CODE_VAR_VERBOSE,0);
 	puts("verbose set to 0");
     
 	//std::cout << dspic.read() << std::endl;
-    web.s = "hola ! \n";
-    getchar();
+    //web.s = "hola ! \n";
+    //getchar();
     puts("exiting ...");
     //pthread_exit(NULL);
 
@@ -92,6 +110,19 @@ void *print(void *ptr) {
                         break;
                     case TX_CODE_VAR :    //variable
                         switch(msg[2]){
+							case CODE_VAR_BAT :{
+                                if(msg.size() > 6){
+                                    float vbat;
+									float *ptr = &vbat;
+									uint8_t *ptrChar = (uint8_t*)ptr;
+									for(int i = 0; i < 4; i++){
+										ptrChar[i] = msg[3+i];
+									}
+									std::cout << "received from DsPIC : VBAT = " << vbat << std::endl;
+									dspic->bat = vbat;
+                                }
+							break;
+							}
                             case CODE_VAR_X :
                                 if(msg.size() > 4){
                                     dspic->x = ((msg[3] << 8) + msg[4]);
@@ -108,6 +139,47 @@ void *print(void *ptr) {
                                 if(msg.size() > 4){
                                     dspic->t = ((msg[3] << 8) + msg[4]);
                                     //std::cout << "received from DsPIC : t = " << dspic->t << " & H = " << (int)msg[3] << " & L = " << (int)msg[4] << std::endl;
+                                }
+                            case CODE_VAR_X_LD :
+                                if(msg.size() > 8){
+                                    double x_ld;
+                                    double *ptr = &x_ld;
+                                    uint8_t *ptrChar = (uint8_t*)ptr;
+                                    for(int i = 0; i < 8; i++){
+                                        ptrChar[i] = msg[3+i];
+                                    }
+                                    std::cout.precision(11);
+                                    std::cout << "received from DsPIC : x_ld = " << x_ld << std::endl;
+                                    std::cout.precision(6);
+                                    //dspic->bat = vbat;
+                                }
+                                break;
+                            case CODE_VAR_Y_LD :
+                                if(msg.size() > 8){
+                                    double y_ld;
+                                    double *ptr = &y_ld;
+                                    uint8_t *ptrChar = (uint8_t*)ptr;
+                                    for(int i = 0; i < 8; i++){
+                                        ptrChar[i] = msg[3+i];
+                                    }
+                                    std::cout.precision(11);
+                                    std::cout << "received from DsPIC : y_ld = " << y_ld << std::endl;
+                                    std::cout.precision(6);
+                                    //dspic->bat = vbat;
+                                }
+                                break;
+                            case CODE_VAR_T_LD :
+                                if(msg.size() > 8){
+                                    double t_ld;
+                                    double *ptr = &t_ld;
+                                    uint8_t *ptrChar = (uint8_t*)ptr;
+                                    for(int i = 0; i < 8; i++){
+                                        ptrChar[i] = msg[3+i];
+                                    }
+                                    std::cout.precision(11);
+                                    std::cout << "received from DsPIC : t_ld = " << t_ld << std::endl;
+                                    std::cout.precision(6);
+                                    //dspic->bat = vbat;
                                 }
                                 break;
                             case CODE_VAR_RUPT :
@@ -165,52 +237,227 @@ void *print(void *ptr) {
                                     //std::cout << "received from DsPIC : US[5] = " << dspic->US[5] << " (H = " << (int)msg[3] << " & L = " << (int)msg[4] << ")" << std::endl;
                                 }
                                 break;
-							case CODE_VAR_P_SPEED_L :
-								w->dspic->pidSpeedLeft.Kp = ((uint32_t)msg[4] << 24) + ((uint32_t)msg[5] << 16) + ((uint32_t)msg[6] << 8) + msg[7];
-								//w->dspic->isPIDUpdated = true;
-								printf("message from main.cpp l 120 : Kp set to %d\n",w->dspic->pidSpeedLeft.Kp);
-
-								for(int i = 0; i <= 7; i++){
-                                    printf("[%d] = %d |",i,(int)msg[i]);
-								}
+							/*case CODE_VAR_P_SPEED_L :
+								w->dspic->pidSpeedLeft.Kp = ((uint32_t)msg[3] << 24) + ((uint32_t)msg[4] << 16) + ((uint32_t)msg[5] << 8) + msg[6];
 								break;
 							case CODE_VAR_I_SPEED_L :
-								w->dspic->pidSpeedLeft.Ki = ((uint32_t)msg[4] << 24) + ((uint32_t)msg[5] << 16) + ((uint32_t)msg[6] << 8) + msg[7];
+								w->dspic->pidSpeedLeft.Ki = ((uint32_t)msg[3] << 24) + ((uint32_t)msg[4] << 16) + ((uint32_t)msg[5] << 8) + msg[6];
 								break;
 							case CODE_VAR_D_SPEED_L :
-								w->dspic->pidSpeedLeft.Kd = ((uint32_t)msg[4] << 24) + ((uint32_t)msg[5] << 16) + ((uint32_t)msg[6] << 8) + msg[7];
+								w->dspic->pidSpeedLeft.Kd = ((uint32_t)msg[3] << 24) + ((uint32_t)msg[4] << 16) + ((uint32_t)msg[5] << 8) + msg[6];
 								break;
 
 							case CODE_VAR_P_SPEED_R :
-								w->dspic->pidSpeedRight.Kp = ((uint32_t)msg[4] << 24) + ((uint32_t)msg[5] << 16) + ((uint32_t)msg[6] << 8) + msg[7];
+								w->dspic->pidSpeedRight.Kp = ((uint32_t)msg[3] << 24) + ((uint32_t)msg[4] << 16) + ((uint32_t)msg[5] << 8) + msg[6];
 								break;
 							case CODE_VAR_I_SPEED_R :
-								w->dspic->pidSpeedRight.Ki = ((uint32_t)msg[4] << 24) + ((uint32_t)msg[5] << 16) + ((uint32_t)msg[6] << 8) + msg[7];
+								w->dspic->pidSpeedRight.Ki = ((uint32_t)msg[3] << 24) + ((uint32_t)msg[4] << 16) + ((uint32_t)msg[5] << 8) + msg[6];
 								break;
 							case CODE_VAR_D_SPEED_R :
-								w->dspic->pidSpeedRight.Kd = ((uint32_t)msg[4] << 24) + ((uint32_t)msg[5] << 16) + ((uint32_t)msg[6] << 8) + msg[7];
+								w->dspic->pidSpeedRight.Kd = ((uint32_t)msg[3] << 24) + ((uint32_t)msg[4] << 16) + ((uint32_t)msg[5] << 8) + msg[6];
 								break;
 
 							case CODE_VAR_P_DISTANCE :
-								w->dspic->pidDistance.Kp = ((uint32_t)msg[4] << 24) + ((uint32_t)msg[5] << 16) + ((uint32_t)msg[6] << 8) + msg[7];
+								w->dspic->pidDistance.Kp = ((uint32_t)msg[3] << 24) + ((uint32_t)msg[4] << 16) + ((uint32_t)msg[5] << 8) + msg[6];
 								break;
 							case CODE_VAR_I_DISTANCE :
-								w->dspic->pidDistance.Ki = ((uint32_t)msg[4] << 24) + ((uint32_t)msg[5] << 16) + ((uint32_t)msg[6] << 8) + msg[7];
+								w->dspic->pidDistance.Ki = ((uint32_t)msg[3] << 24) + ((uint32_t)msg[4] << 16) + ((uint32_t)msg[5] << 8) + msg[6];
 								break;
 							case CODE_VAR_D_DISTANCE :
-								w->dspic->pidDistance.Kd = ((uint32_t)msg[4] << 24) + ((uint32_t)msg[5] << 16) + ((uint32_t)msg[6] << 8) + msg[7];
+								w->dspic->pidDistance.Kd = ((uint32_t)msg[3] << 24) + ((uint32_t)msg[4] << 16) + ((uint32_t)msg[5] << 8) + msg[6];
 								break;
 
 							case CODE_VAR_P_ANGLE :
-								w->dspic->pidAngle.Kp = ((uint32_t)msg[4] << 24) + ((uint32_t)msg[5] << 16) + ((uint32_t)msg[6] << 8) + msg[7];
+								w->dspic->pidAngle.Kp = ((uint32_t)msg[3] << 24) + ((uint32_t)msg[4] << 16) + ((uint32_t)msg[5] << 8) + msg[6];
 								break;
 							case CODE_VAR_I_ANGLE :
-								w->dspic->pidAngle.Ki = ((uint32_t)msg[4] << 24) + ((uint32_t)msg[5] << 16) + ((uint32_t)msg[6] << 8) + msg[7];
+								w->dspic->pidAngle.Ki = ((uint32_t)msg[3] << 24) + ((uint32_t)msg[4] << 16) + ((uint32_t)msg[5] << 8) + msg[6];
 								break;
 							case CODE_VAR_D_ANGLE :
-								w->dspic->pidAngle.Kd = ((uint32_t)msg[4] << 24) + ((uint32_t)msg[5] << 16) + ((uint32_t)msg[6] << 8) + msg[7];
+								w->dspic->pidAngle.Kd = ((uint32_t)msg[3] << 24) + ((uint32_t)msg[4] << 16) + ((uint32_t)msg[5] << 8) + msg[6];
 								w->dspic->isPIDUpdated = true;
+								break;*/
+                            case CODE_VAR_COEF_DISSYMETRY_LD:
+                                if(msg.size() > 8){
+                                    double var;
+                                    double *ptr = &var;
+                                    uint8_t *ptrChar = (uint8_t*)ptr;
+                                    for(int i = 0; i < 8; i++){
+                                        ptrChar[i] = msg[3+i];
+                                    }
+                                    std::cout << "received from DsPIC : coef_Dissymetry_ld = " << var << std::endl;
+                                }
+                                break;
+                            case CODE_VAR_MM_PER_TICKS_LD:
+                                if(msg.size() > 8){
+                                    double var;
+                                    double *ptr = &var;
+                                    uint8_t *ptrChar = (uint8_t*)ptr;
+                                    for(int i = 0; i < 8; i++){
+                                        ptrChar[i] = msg[3+i];
+                                    }
+                                    std::cout << "received from DsPIC : mm_per_ticks_ld = " << var << std::endl;
+                                }
+                                break;
+                            case CODE_VAR_RAD_PER_TICKS_LD:
+                                if(msg.size() > 8){
+                                    double var;
+                                    double *ptr = &var;
+                                    uint8_t *ptrChar = (uint8_t*)ptr;
+                                    for(int i = 0; i < 8; i++){
+                                        ptrChar[i] = msg[3+i];
+                                    }
+                                    std::cout << "received from DsPIC : rad_per_ticks_ld = " << var << std::endl;
+                                }
+                                break;
+								
+								
+								
+                            case CODE_VAR_P_SPEED_0_LD:
+                                if(msg.size() > 8){
+                                    double *ptr = &w->dspic->pidSpeed0.Kp;
+                                    uint8_t *ptrChar = (uint8_t*)ptr;
+                                    for(int i = 0; i < 8; i++){
+                                        ptrChar[i] = msg[3+i];
+                                    }
+									std::cout << "P_speed0 = " << w->dspic->pidSpeed0.Kp << std::endl;
+                                }
 								break;
+                            case CODE_VAR_I_SPEED_0_LD:
+                                if(msg.size() > 8){
+                                    double *ptr = &w->dspic->pidSpeed0.Ki;
+                                    uint8_t *ptrChar = (uint8_t*)ptr;
+                                    for(int i = 0; i < 8; i++){
+                                        ptrChar[i] = msg[3+i];
+                                    }
+                                }
+								break;
+                            case CODE_VAR_D_SPEED_0_LD:
+                                if(msg.size() > 8){
+                                    double *ptr = &w->dspic->pidSpeed0.Kd;
+                                    uint8_t *ptrChar = (uint8_t*)ptr;
+                                    for(int i = 0; i < 8; i++){
+                                        ptrChar[i] = msg[3+i];
+                                    }
+                                }
+								break;
+								
+                            case CODE_VAR_P_SPEED_1_LD:
+                                if(msg.size() > 8){
+                                    double *ptr = &w->dspic->pidSpeed1.Kp;
+                                    uint8_t *ptrChar = (uint8_t*)ptr;
+                                    for(int i = 0; i < 8; i++){
+                                        ptrChar[i] = msg[3+i];
+                                    }
+                                }
+								break;
+                            case CODE_VAR_I_SPEED_1_LD:
+                                if(msg.size() > 8){
+                                    double *ptr = &w->dspic->pidSpeed1.Ki;
+                                    uint8_t *ptrChar = (uint8_t*)ptr;
+                                    for(int i = 0; i < 8; i++){
+                                        ptrChar[i] = msg[3+i];
+                                    }
+                                }
+								break;
+                            case CODE_VAR_D_SPEED_1_LD:
+                                if(msg.size() > 8){
+                                    double *ptr = &w->dspic->pidSpeed1.Kd;
+                                    uint8_t *ptrChar = (uint8_t*)ptr;
+                                    for(int i = 0; i < 8; i++){
+                                        ptrChar[i] = msg[3+i];
+                                    }
+                                }
+								break;
+								
+                            case CODE_VAR_P_SPEED_2_LD:
+                                if(msg.size() > 8){
+                                    double *ptr = &w->dspic->pidSpeed2.Kp;
+                                    uint8_t *ptrChar = (uint8_t*)ptr;
+                                    for(int i = 0; i < 8; i++){
+                                        ptrChar[i] = msg[3+i];
+                                    }
+                                }
+								break;
+                            case CODE_VAR_I_SPEED_2_LD:
+                                if(msg.size() > 8){
+                                    double *ptr = &w->dspic->pidSpeed2.Ki;
+                                    uint8_t *ptrChar = (uint8_t*)ptr;
+                                    for(int i = 0; i < 8; i++){
+                                        ptrChar[i] = msg[3+i];
+                                    }
+                                }
+								break;
+                            case CODE_VAR_D_SPEED_2_LD:
+                                if(msg.size() > 8){
+                                    double *ptr = &w->dspic->pidSpeed2.Kd;
+                                    uint8_t *ptrChar = (uint8_t*)ptr;
+                                    for(int i = 0; i < 8; i++){
+                                        ptrChar[i] = msg[3+i];
+                                    }
+                                }
+								break;
+								
+								
+                            case CODE_VAR_P_DISTANCE_LD:
+                                if(msg.size() > 8){
+                                    double *ptr = &w->dspic->pidDistance.Kp;
+                                    uint8_t *ptrChar = (uint8_t*)ptr;
+                                    for(int i = 0; i < 8; i++){
+                                        ptrChar[i] = msg[3+i];
+                                    }
+                                }
+								break;
+                            case CODE_VAR_I_DISTANCE_LD:
+                                if(msg.size() > 8){
+                                    double *ptr = &w->dspic->pidDistance.Ki;
+                                    uint8_t *ptrChar = (uint8_t*)ptr;
+                                    for(int i = 0; i < 8; i++){
+                                        ptrChar[i] = msg[3+i];
+                                    }
+                                }
+								break;
+                            case CODE_VAR_D_DISTANCE_LD:
+                                if(msg.size() > 8){
+                                    double *ptr = &w->dspic->pidDistance.Kd;
+                                    uint8_t *ptrChar = (uint8_t*)ptr;
+                                    for(int i = 0; i < 8; i++){
+                                        ptrChar[i] = msg[3+i];
+                                    }
+                                }
+								break;
+								
+                            case CODE_VAR_P_ANGLE_LD:
+                                if(msg.size() > 8){
+                                    double *ptr = &w->dspic->pidAngle.Kp;
+                                    uint8_t *ptrChar = (uint8_t*)ptr;
+                                    for(int i = 0; i < 8; i++){
+                                        ptrChar[i] = msg[3+i];
+                                    }
+                                }
+								break;
+                            case CODE_VAR_I_ANGLE_LD:
+                                if(msg.size() > 8){
+                                    double *ptr = &w->dspic->pidAngle.Ki;
+                                    uint8_t *ptrChar = (uint8_t*)ptr;
+                                    for(int i = 0; i < 8; i++){
+                                        ptrChar[i] = msg[3+i];
+                                    }
+                                }
+								break;
+                            case CODE_VAR_D_ANGLE_LD:
+                                if(msg.size() > 8){
+                                    double *ptr = &w->dspic->pidAngle.Kd;
+                                    uint8_t *ptrChar = (uint8_t*)ptr;
+                                    for(int i = 0; i < 8; i++){
+                                        ptrChar[i] = msg[3+i];
+                                    }
+									w->dspic->isPIDUpdated = true;
+									std::cout << "Updated !" << std::endl;
+                                }
+								break;
+								
+								
                             default :
                                 std::cout << "Received wrong variable code from DsPIC : " << (int)msg[2] << std::endl;
                                 break;

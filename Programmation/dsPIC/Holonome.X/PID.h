@@ -51,7 +51,8 @@ struct PID
     long double debugCommandeD;
 };
 
-void initAllPID(volatile PID *pidSpeedLeft, volatile PID *pidSpeedRight, volatile PID *pidDistance, volatile PID *pidAngle);
+//void initAllPID(volatile PID *pidSpeedLeft, volatile PID *pidSpeedRight, volatile PID *pidDistance, volatile PID *pidAngle);
+void initAllPID(volatile PID *pidSpeed0, volatile PID *pidSpeed1, volatile PID *pidSpeed2, volatile PID *pidDistance, volatile PID *pidAngle);
 void initPID(volatile PID *pid, long double Kp, long double Ki, long double Kd,long double bias, long double output, long double period, long double processVariable, long double setPoint, long double smoothingFactor, long double saturation);
 void setSetPoint(volatile PID *pid, long double setPoint);
 void setProcessValue(volatile PID *pid, long double processVariable);

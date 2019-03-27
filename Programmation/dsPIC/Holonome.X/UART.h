@@ -30,6 +30,7 @@ void sendLongDouble(uint8_t varCode, long double ptrVar);
 void sendPosLongDouble();
 
 void sendAllPID();
+void sendAllPIDLongDouble();
 /*typedef enum Cmd Cmd;
 enum Cmd
 {

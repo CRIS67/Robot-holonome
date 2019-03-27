@@ -576,6 +576,71 @@ void CheckMessages(){
                     }
                     break;
                 }
+                else if (type == VAR_LD_64b) {
+                    uint8_t *ptr = NULL;
+                    uint8_t existing_var = 1;
+                    switch (var){
+                        case CODE_VAR_P_SPEED_0_LD:
+                            ptr = (uint8_t*)&pidSpeed0.Kp;
+                            break;
+                        case CODE_VAR_I_SPEED_0_LD:
+                            ptr = (uint8_t*)&pidSpeed0.Ki;
+                            break;
+                        case CODE_VAR_D_SPEED_0_LD:
+                            ptr = (uint8_t*)&pidSpeed0.Kd;
+                            break;
+                        case CODE_VAR_P_SPEED_1_LD:
+                            ptr = (uint8_t*)&pidSpeed1.Kp;
+                            break;
+                        case CODE_VAR_I_SPEED_1_LD:
+                            ptr = (uint8_t*)&pidSpeed1.Ki;
+                            break;
+                        case CODE_VAR_D_SPEED_1_LD:
+                            ptr = (uint8_t*)&pidSpeed1.Kd;
+                            break;
+                        case CODE_VAR_P_SPEED_2_LD:
+                            ptr = (uint8_t*)&pidSpeed2.Kp;
+                            break;
+                        case CODE_VAR_I_SPEED_2_LD:
+                            ptr = (uint8_t*)&pidSpeed2.Ki;
+                            break;
+                        case CODE_VAR_D_SPEED_2_LD:
+                            ptr = (uint8_t*)&pidSpeed2.Kd;
+                            break;
+                        case CODE_VAR_P_DISTANCE_LD:
+                            ptr = (uint8_t*)&pidDistance.Kp;
+                            break;
+                        case CODE_VAR_I_DISTANCE_LD:
+                            ptr = (uint8_t*)&pidDistance.Ki;
+                            break;
+                        case CODE_VAR_D_DISTANCE_LD:
+                            ptr = (uint8_t*)&pidDistance.Kd;
+                            break;
+                        case CODE_VAR_P_ANGLE_LD:
+                            ptr = (uint8_t*)&pidAngle.Kp;
+                            break;
+                        case CODE_VAR_I_ANGLE_LD:
+                            ptr = (uint8_t*)&pidAngle.Ki;
+                            break;
+                        case CODE_VAR_D_ANGLE_LD:
+                            ptr = (uint8_t*)&pidAngle.Kd;
+                            break;
+                        default:
+                            existing_var = 0;
+                            break;
+                    }
+                    if(existing_var){
+                        ptr[0] = RxDMABuffer[iArg3];
+                        ptr[1] = RxDMABuffer[iArg4];
+                        ptr[2] = RxDMABuffer[iArg5];
+                        ptr[3] = RxDMABuffer[iArg6];
+                        ptr[4] = RxDMABuffer[iArg7];
+                        ptr[5] = RxDMABuffer[iArg8];
+                        ptr[6] = RxDMABuffer[iArg9];
+                        ptr[7] = RxDMABuffer[iArg10];
+                    }
+                    break;
+                }
             } // </editor-fold>
 
                 // <editor-fold defaultstate="collapsed" desc="Get">
@@ -596,7 +661,8 @@ void CheckMessages(){
                         break;
                     }
                     case CODE_VAR_ALLPID:
-                        sendAllPID();
+                        //sendAllPID();
+                        sendAllPIDLongDouble();
                         break;
                     case CODE_VAR_ODO:
                         sendLongDouble(CODE_VAR_COEF_DISSYMETRY_LD,coef_dissymmetry);
@@ -925,6 +991,27 @@ void sendAllPID(){
     sendVar32(CODE_VAR_P_ANGLE,(uint32_t)(pidAngle.Kp*COEF_SCALE_PID));
     sendVar32(CODE_VAR_I_ANGLE,(uint32_t)(pidAngle.Ki*COEF_SCALE_PID));
     sendVar32(CODE_VAR_D_ANGLE,(uint32_t)(pidAngle.Kd*COEF_SCALE_PID));
+}
+void sendAllPIDLongDouble(){
+    sendLongDouble(CODE_VAR_P_SPEED_0_LD,pidSpeed0.Kp);
+    sendLongDouble(CODE_VAR_I_SPEED_0_LD,pidSpeed0.Ki);
+    sendLongDouble(CODE_VAR_D_SPEED_0_LD,pidSpeed0.Kd);
+    
+    sendLongDouble(CODE_VAR_P_SPEED_1_LD,pidSpeed1.Kp);
+    sendLongDouble(CODE_VAR_I_SPEED_1_LD,pidSpeed1.Ki);
+    sendLongDouble(CODE_VAR_D_SPEED_1_LD,pidSpeed1.Kd);
+    
+    sendLongDouble(CODE_VAR_P_SPEED_2_LD,pidSpeed2.Kp);
+    sendLongDouble(CODE_VAR_I_SPEED_2_LD,pidSpeed2.Ki);
+    sendLongDouble(CODE_VAR_D_SPEED_2_LD,pidSpeed2.Kd);
+    
+    sendLongDouble(CODE_VAR_P_DISTANCE_LD,pidDistance.Kp);
+    sendLongDouble(CODE_VAR_I_DISTANCE_LD,pidDistance.Ki);
+    sendLongDouble(CODE_VAR_D_DISTANCE_LD,pidDistance.Kd);
+    
+    sendLongDouble(CODE_VAR_P_ANGLE_LD,pidAngle.Kp);
+    sendLongDouble(CODE_VAR_I_ANGLE_LD,pidAngle.Ki);
+    sendLongDouble(CODE_VAR_D_ANGLE_LD,pidAngle.Kd);
 }
 void sendVar32(uint8_t varCode, uint32_t var){
     uint8_t  i;

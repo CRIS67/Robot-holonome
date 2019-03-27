@@ -135,9 +135,17 @@ volatile int16_t saveTick0 = 0;
 volatile int16_t saveTick1 = 0;
 volatile int16_t saveTick2 = 0;
 
+volatile int16_t odoTick0 = 0;
+volatile int16_t odoTick1 = 0;
+volatile int16_t odoTick2 = 0;
+
 volatile long double s0 = 0;
 volatile long double s1 = 0;
 volatile long double s2 = 0;
+
+volatile long double prevc0 = 0;
+volatile long double prevc1 = 0;
+volatile long double prevc2 = 0;
 
 // </editor-fold>
 
@@ -241,8 +249,75 @@ void initTimer5() { //Timer 5   -> 20µs delay
 // <editor-fold defaultstate="collapsed" desc="Timer interrupts">
 void __attribute__((interrupt, no_auto_psv)) _T1Interrupt(void) {
     IFS0bits.T1IF = 0; //Clear Timer1 interrupt flag
+    int16_t t0 = tick0 - odoTick0;
+    odoTick0 = tick0;
+    int16_t t1 = tick1 - odoTick1;
+    odoTick1 = tick1;
+    int16_t t2 = tick2 - odoTick2;
+    odoTick2 = tick2;
+    
+    double speed0 = t0;
+    double speed1 = t1;
+    double speed2 = t2;
+    
+    speed0 = speed0 * 1000;     //tick/s
+    speed0 = speed0 / TICKS_PER_TURN;  //tr/s
+    speed0 = speed0 * WHEEL_DIAMETER * PI;  //mm/s
+    speed1 = speed1 * 1000 / TICKS_PER_TURN * WHEEL_DIAMETER * PI;
+    speed2 = speed2 * 1000 / TICKS_PER_TURN * WHEEL_DIAMETER * PI;
+    
+    /*double speedX = 0;
+    double speedY = 0;
+    
+    speedX += speed0 * cos(ANGLE0 + theta) + speed1 * cos(ANGLE1+ theta) + speed2 * cos(ANGLE2+ theta);
+    speedY += speed0 * sin(ANGLE0 + theta) + speed1 * sin(ANGLE1+ theta) + speed2 * sin(ANGLE2+ theta);*/
+    
+    /*equation internet*/
+    double xPoint = (2.0/3.0)*(-1.0*cos(theta)*speed0 + cos(((PI)/3)-theta)*speed1 + cos(((PI)/3)+theta)*speed2) ;
+    double yPoint = (2.0/3.0)*(-1.0*sin(theta)*speed0 - sin(((PI)/3)-theta)*speed1 + sin(((PI)/3)+theta)*speed2) ;
+    double thetaPoint = (1.0/(3*DISTANCE_CENTER_TO_WHEEL))*(speed0 + speed1 + speed2);
+    
+    x += xPoint / 1000;
+    y += yPoint / 1000;
+    theta += thetaPoint / 1000;
+    
     n++;
     if (n >= N_ASSERV) {//N_asserv = 20 => T = 0.02s
+        
+        long double distance = sqrt((xc-x)*(xc-x)+(yc-y)*(yc-y));
+        
+        /*if (distance < 10){
+            distance = 0;
+        }*/
+        
+        long double commandeD = compute(&pidDistance,-distance);
+        long double commandeT = compute(&pidAngle,theta);
+        commandeD = commandeD;
+        //commandeT = 0;
+        //long double commandeX = commandeD;
+        
+        long double commandeX = 0;
+        long double commandeY = 0;
+        long double distancef = sqrt((xf-x)*(xf-x)+(yf-y)*(yf-y));
+        long double alpha = 0;
+        if (distancef > 10){
+            alpha = atan2l(yf-y,xf-x);
+            commandeX = commandeD * cosl(alpha);
+            commandeY = commandeD * sinl(alpha);
+        }
+            
+        
+      
+        
+        
+        long double sc0 = -1.0 * cos(theta) * commandeX - sin(theta)*commandeY + DISTANCE_CENTER_TO_WHEEL * commandeT;
+        long double sc1 = cos((PI/3) - theta) * commandeX + sin((PI/3) - theta)*commandeY + DISTANCE_CENTER_TO_WHEEL * commandeT;
+        long double sc2 = cos((PI/3) + theta) * commandeX + sin((PI/3) + theta)*commandeY + DISTANCE_CENTER_TO_WHEEL * commandeT;
+        
+        setSetPoint(&pidSpeed0,sc0);
+        setSetPoint(&pidSpeed1,sc1);
+        setSetPoint(&pidSpeed2,sc2);
+        
         n = 0;
         long double s0 = (tick0 - saveTick0) * 50;   // % 0.02s
         saveTick0 = tick0;
@@ -259,20 +334,65 @@ void __attribute__((interrupt, no_auto_psv)) _T1Interrupt(void) {
         long double c0 = compute(&pidSpeed0,s0);
         long double c1 = compute(&pidSpeed1,s1);
         long double c2 = compute(&pidSpeed2,s2);
-        //compute(&pidSpeed0,0);
         
+        /*
+         * if(c0 > 0 && s0 == 0)
+            c0 += 1.0;
+        else if(c0 < 0 && s0 == 0)
+            c0 -= 1.0;
+        if(c1 > 0 && s0 == 0)
+            c1 += 1.0;
+        else if(c1 < 0 && s0 == 0)
+            c1 -= 1.0;
+        if(c2 > 0 && s0 == 0)
+            c2 += 1.0;
+        else if(c2 < 0 && s0 == 0)
+            c2 -= 1.0;
+         */
+        /*if(c0 - prevc0 > ACC_MAX)
+            c0 = prevc0 + ACC_MAX;
+        else if(c0 - prevc0 < -ACC_MAX)
+            c0 = prevc0 - ACC_MAX;
         
-        //double commandeL = compute(&pidSpeedLeft, speedL);
+        if(c1 - prevc1 > ACC_MAX)
+            c1 = prevc1 + ACC_MAX;
+        else if(c1 - prevc1 < -ACC_MAX)
+            c1 = prevc1 - ACC_MAX;
         
+        if(c2 - prevc2 > ACC_MAX)
+            c2 = prevc2 + ACC_MAX;
+        else if(c2 - prevc2 < -ACC_MAX)
+            c2 = prevc2 - ACC_MAX;*/
+        
+        prevc0 = c0;
+        prevc1 = c1;
+        prevc2 = c2;
         sendMotor((double)c0,(double)c1,(double)c2);
         //plot(2,(uint32_t)((int32_t)(s0)));
-        plot(10,(uint32_t)((int32_t)(pidSpeed0.setPoint)));
-        plot(20,(uint32_t)((int32_t)(pidSpeed1.setPoint)));
-        plot(30,(uint32_t)((int32_t)(pidSpeed2.setPoint)));
+        plot(11,(uint32_t)((int32_t)(pidSpeed0.setPoint*1000)));
+        /*plot(21,(uint32_t)((int32_t)(pidSpeed1.setPoint*1000)));
+        plot(31,(uint32_t)((int32_t)(pidSpeed2.setPoint*1000)));*/
         
-        plot(11,(uint32_t)((int32_t)(s0*1000)));
-        plot(21,(uint32_t)((int32_t)(s1*1000)));
-        plot(31,(uint32_t)((int32_t)(s2*1000)));
+        plot(12,(uint32_t)((int32_t)(s0*1000)));
+        /*plot(22,(uint32_t)((int32_t)(s1*1000)));
+        plot(32,(uint32_t)((int32_t)(s2*1000)));*/
+        
+        /*plot(1,(uint32_t)((int32_t)(xc)));
+        plot(2,(uint32_t)((int32_t)(x)));
+        plot(3,(uint32_t)((int32_t)(pidDistance.debugCommande)));
+        plot(4,(uint32_t)((int32_t)(alpha*1800/PI)));*/
+        //plot(5,(uint32_t)((int32_t)(xf)));
+        
+        
+        /*plot(41,(uint32_t)((int32_t)(commandeX*1000)));
+        plot(42,(uint32_t)((int32_t)(commandeY*1000)));*/
+        
+        /*plot(31,(uint32_t)((int32_t)(pidAngle.setPoint*1800/PI)));
+        plot(32,(uint32_t)((int32_t)(theta*1800/PI)));*/
+        
+        /*plot(41,(uint32_t)((int32_t)(PWM_0)));
+        plot(42,(uint32_t)((int32_t)(PWM_1)));
+        plot(43,(uint32_t)((int32_t)(PWM_2)));*/
         //sendLog("a\n");
     }  
 }

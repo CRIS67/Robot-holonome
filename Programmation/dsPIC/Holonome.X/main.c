@@ -167,9 +167,7 @@ int main(){
     //initAX12();
     initInt();
     
-    initPID(&pidSpeed0,KP_SPEED_0,KI_SPEED_0,KD_SPEED_0,BIAS_SPEED_0,0,T_SPEED_0,0,0,SMOOTHING_FACTOR_SPEED_0,SATURATION_SPEED_0);
-    initPID(&pidSpeed1,KP_SPEED_1,KI_SPEED_1,KD_SPEED_1,BIAS_SPEED_1,0,T_SPEED_1,0,0,SMOOTHING_FACTOR_SPEED_1,SATURATION_SPEED_1);
-    initPID(&pidSpeed2,KP_SPEED_2,KI_SPEED_2,KD_SPEED_2,BIAS_SPEED_2,0,T_SPEED_2,0,0,SMOOTHING_FACTOR_SPEED_2,SATURATION_SPEED_2);
+    initAllPID(&pidSpeed0, &pidSpeed1, &pidSpeed2, &pidDistance, &pidAngle);
 
     initTimer();
     //initUS();
@@ -194,9 +192,16 @@ int main(){
     
     initPWM();
     int iLed = 0;
-    while(!verbose){
+    x = 1000;
+    y = 1500;
+    xc = x;
+    yc = y;
+    xf = x;
+    yf = y;
+    theta = 0;
+    /*while(!verbose){
         CheckMessages();
-    }
+    }*/
     /*while(1){
         plot(1,(uint32_t)((int32_t)(tick0)));
         delay_ms(10);
@@ -210,20 +215,105 @@ int main(){
         delay_ms(1000);
         sendLog("hello\n");
     }*/
-    IEC0bits.T1IE = 1;
+    //IEC0bits.T1IE = 1;
+    /*setSetPoint(&pidSpeed0,1);
+    setSetPoint(&pidSpeed1,1);
+    setSetPoint(&pidSpeed2,1);*/
+    /*pidSpeed0.Kp = 0;
+    pidSpeed1.Kp = 0;
+    pidSpeed2.Kp = 0;
+    pidSpeed0.Ki = 0;
+    pidSpeed1.Ki = 0;
+    pidSpeed2.Ki = 0;*/
+    
+    /*
+    setSetPoint(&pidSpeed0,0);
+    setSetPoint(&pidSpeed1,0);
+    setSetPoint(&pidSpeed2,0);
+     */
+    stop = 1;
     while(1){
-        setSetPoint(&pidSpeed0,1);
-        setSetPoint(&pidSpeed1,-1);
-        setSetPoint(&pidSpeed2,0);
-        for(iMotor = 0; iMotor < 200; iMotor++){
+        /*setSetPoint(&pidSpeed0,0);
+        setSetPoint(&pidSpeed1,0);
+        setSetPoint(&pidSpeed2,0);*/
+        
+        //setSetPoint(&pidAngle,0);
+        xc = 1100;
+        xf = 1100;
+        while(stop){
             CheckMessages();
+            sendPos();
             delay_ms(10);
         }
-        setSetPoint(&pidSpeed0,-1);
-        setSetPoint(&pidSpeed1,1);
-        setSetPoint(&pidSpeed2,0);
+        xc = 1000;
+        xf = 1000;
+        //setSetPoint(&pidAngle,2*PI);
+        
+        /*setSetPoint(&pidSpeed0,1);
+        setSetPoint(&pidSpeed1,-1);
+        setSetPoint(&pidSpeed2,0);*/
+        while(!stop){
+            CheckMessages();
+            sendPos();
+            delay_ms(10);
+        }
+    }
+    while(1){
+        CheckMessages();
+        sendPos();
+        delay_ms(10);
+    }
+    while(1){
+        x = 1000;
+        xf = 1100;
+        xc = 1100;
+        y = 1500;
+        yf = y;
+        yc = y;
+        for(iMotor = 0; iMotor < 500; iMotor++){
+            CheckMessages();
+            sendPos();
+            delay_ms(10);
+        }
+        x = 1100;
+        xf = 1000;
+        xc = 1000;
+        y = 1500;
+        yf = y;
+        yc = y;
+        for(iMotor = 0; iMotor < 500; iMotor++){
+            CheckMessages();
+            sendPos();
+            delay_ms(10);
+        }
+    }
+    while(1){
+        /*setSetPoint(&pidSpeed0,1);
+        setSetPoint(&pidSpeed1,-1);
+        setSetPoint(&pidSpeed2,0);*/
+        xf = 1200;
+        for(xc = 1000; xc < 1200; xc++){
+            CheckMessages();
+            sendPos();
+            delay_ms(20);
+        }
         for(iMotor = 0; iMotor < 200; iMotor++){
             CheckMessages();
+            sendPos();
+            delay_ms(10);
+        }
+        /*setSetPoint(&pidSpeed0,-1);
+        setSetPoint(&pidSpeed1,1);
+        setSetPoint(&pidSpeed2,0);*/
+        xf = 1000;
+        for(xc = 1200; xc > 1000; xc--){
+            CheckMessages();
+            sendPos();
+            delay_ms(20);
+        }
+        for(iMotor = 0; iMotor < 200; iMotor++){
+            CheckMessages();
+            sendPos();
             delay_ms(10);
         }
     }

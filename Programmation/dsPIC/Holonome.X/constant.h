@@ -7,7 +7,7 @@
 
 // <editor-fold defaultstate="collapsed" desc="PID">
 //PID speed left    units : rad/s -> V
-#define KP_SPEED_LEFT               0.05//1.5//1//0.38//0.57//0.576
+#define KP_SPEED_LEFT               0.1//1.5//1//0.38//0.57//0.576
 #define KI_SPEED_LEFT               0.35//2//0//0.00535//0.05
 #define KD_SPEED_LEFT               0//0.5//0//0.001675//0.0013375//0.005
 #define BIAS_SPEED_LEFT             0
@@ -25,7 +25,7 @@
 #define SATURATION_SPEED_RIGHT      VSAT    //unit : voltage
 
 //PID distance      units : mm -> rad/s
-#define KP_DISTANCE                 2//0.15//0.04
+#define KP_DISTANCE                 0//0.015//0.15//0.04
 #define KI_DISTANCE                 0
 #define KD_DISTANCE                 0//0.001//0//0.0065
 #define BIAS_DISTANCE               0
@@ -34,37 +34,42 @@
 #define SATURATION_DISTANCE         1000000    //unit : mm/s
 
 //PID angle         units : rad -> rad/s
-#define KP_ANGLE                    1000//20//80//15//80//120//90//30//60
+#define KP_ANGLE                    0.002//1000//20//80//15//80//120//90//30//60
 #define KI_ANGLE                    0
-#define KD_ANGLE                    1//2//1//0//6.5
+#define KD_ANGLE                    0//1//2//1//0//6.5
 #define BIAS_ANGLE                  0
 #define T_ANGLE                     0.01
 #define SMOOTHING_FACTOR_ANGLE      1
 #define SATURATION_ANGLE            1000000    //unit : mm/s
 
 //#define MAX_I    100
+
+#define KP_SPEED                    3
+#define KI_SPEED                    10
+#define KD_SPEED                    0
+
 //PID speed 0    units : tr/s -> V
-#define KP_SPEED_0                  10//1.5//1//0.38//0.57//0.576
-#define KI_SPEED_0                  50//2//0//0.00535//0.05
-#define KD_SPEED_0                  0//0.5//0//0.001675//0.0013375//0.005
+#define KP_SPEED_0                  KP_SPEED    //10//1.5//1//0.38//0.57//0.576
+#define KI_SPEED_0                  KI_SPEED    //50//2//0//0.00535//0.05
+#define KD_SPEED_0                  KD_SPEED    //0//0.5//0//0.001675//0.0013375//0.005
 #define BIAS_SPEED_0                0
 #define T_SPEED_0                   0.02    //s
 #define SMOOTHING_FACTOR_SPEED_0    0.03
 #define SATURATION_SPEED_0          VSAT    //unit : voltage
 
 //PID speed 1    units : tr/s -> V
-#define KP_SPEED_1                  10//1.5//1//0.38//0.57//0.576
-#define KI_SPEED_1                  50//2//0//0.00535//0.05
-#define KD_SPEED_1                  0//0.5//0//0.001675//0.0013375//0.005
+#define KP_SPEED_1                  KP_SPEED    //10//1.5//1//0.38//0.57//0.576
+#define KI_SPEED_1                  KI_SPEED    //50//2//0//0.00535//0.05
+#define KD_SPEED_1                  KD_SPEED    //0//0.5//0//0.001675//0.0013375//0.005
 #define BIAS_SPEED_1                0
 #define T_SPEED_1                   0.02
 #define SMOOTHING_FACTOR_SPEED_1    0.03
 #define SATURATION_SPEED_1          VSAT    //unit : voltage
 
 //PID speed 2    units : tr/s -> V
-#define KP_SPEED_2                  10//1.5//1//0.38//0.57//0.576
-#define KI_SPEED_2                  50//2//0//0.00535//0.05
-#define KD_SPEED_2                  0//0.5//0//0.001675//0.0013375//0.005
+#define KP_SPEED_2                  KP_SPEED    //10//1.5//1//0.38//0.57//0.576
+#define KI_SPEED_2                  KI_SPEED    //50//2//0//0.00535//0.05
+#define KD_SPEED_2                  KD_SPEED    //0//0.5//0//0.001675//0.0013375//0.005
 #define BIAS_SPEED_2                0
 #define T_SPEED_2                   0.02
 #define SMOOTHING_FACTOR_SPEED_2    0.03
@@ -182,12 +187,29 @@
 #define CODE_VAR_MM_PER_TICKS_LD                    34
 #define CODE_VAR_RAD_PER_TICKS_LD                   35
 
+#define CODE_VAR_P_SPEED_0_LD   42
+#define CODE_VAR_I_SPEED_0_LD   43
+#define CODE_VAR_D_SPEED_0_LD   44
+#define CODE_VAR_P_SPEED_1_LD   45
+#define CODE_VAR_I_SPEED_1_LD   46
+#define CODE_VAR_D_SPEED_1_LD   47
+#define CODE_VAR_P_SPEED_2_LD   48
+#define CODE_VAR_I_SPEED_2_LD   49
+#define CODE_VAR_D_SPEED_2_LD   50
+#define CODE_VAR_P_DISTANCE_LD  51
+#define CODE_VAR_I_DISTANCE_LD  52
+#define CODE_VAR_D_DISTANCE_LD  53
+#define CODE_VAR_P_ANGLE_LD     54
+#define CODE_VAR_I_ANGLE_LD     55
+#define CODE_VAR_D_ANGLE_LD     56
+
 #define CODE_VAR_US     100 //attention range [100 ; 100 + NB_US - 1]
 
 #define VAR_8b      0
 #define VAR_16b     1
 #define VAR_32b     2
 #define VAR_64b     3
+#define VAR_LD_64b  4
 
 
 // </editor-fold>
@@ -213,13 +235,13 @@
 
 #define VBAT        (((double)ADC1BUF0*5.7*3.3)/1024)//12  //à remplacer plus tard par lecture de la tension ?
 
-#define VSAT        2  //saturation pour brider la vitesse  2 -> 6V au multimètre 
+#define VSAT        8  //saturation pour brider la vitesse  2 -> 6V au multimètre 
 
 #define CORRECTEUR_BO_0 1.37
 #define CORRECTEUR_BO_1 1.16
 #define CORRECTEUR_BO_2 1.24
 
-#define THRESHOLD_MOTOR 1
+#define THRESHOLD_MOTOR 0.8
 
 #define PERCENTAGE_DEADBAND 0
 #define DEAD_ZONE   1.3   //tension min qui fait tourner le moteur A MESURER
@@ -227,7 +249,7 @@
 //#define VMIN        1//0.3   //arreter les moteurs si la commande trop faible
 
 //#define ACC_MAX 0.5
-#define ACC_MAX 10000
+#define ACC_MAX 0.1
 
 #define MAX_ERROR_D     8//1//10      //mm
 #define MAX_ERROR_A     0.05//0.02//0.01//0.01rad ~= 0.57°
@@ -306,11 +328,18 @@
 
 #define COEF_DISSYMETRY                     1.010
 #define ENCODER_WHEEL_DIAMETER              43.56
-#define TICKS_PER_TURN                      4096
+#define TICKS_PER_TURN                      1496.88
 
 
 #define MM_PER_TICKS                        PI * ENCODER_WHEEL_DIAMETER / TICKS_PER_TURN
 #define RAD_PER_TICKS                       0.0001405
+
+#define ANGLE0  PI
+#define ANGLE1  (5.0*PI)/3.0
+#define ANGLE2  (7.0*PI)/3.0
+
+#define WHEEL_DIAMETER  63.8
+#define DISTANCE_CENTER_TO_WHEEL  124.4//115.782
 //#define TICKS_PER_RAD                       15572.957676416326850467129424503
 // </editor-fold>
 
