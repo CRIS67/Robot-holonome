@@ -1,8 +1,5 @@
-# test : main.cpp
-# g++ -Wall -lwiringPi -pthread -o out main.cpp web.cpp dspic.cpp mapGeneration.cpp dStarLite.cpp
-
 test: web.o dspic.o mapGeneration.o dStarLite.o main.o  
-	g++ -o test web.o dspic.o mapGeneration.o dStarLite.o main.o  
+	g++ -o test web.o dspic.o mapGeneration.o dStarLite.o main.o -Wall -lwiringPi -pthread 
 
 web.o: web.cpp
 	g++ -o web.o -c web.cpp -Wall -lwiringPi -pthread 
