@@ -1,2 +1,23 @@
-test : main.cpp
-	g++ -Wall -lwiringPi -pthread -o out main.cpp web.cpp dspic.cpp mapGeneration.cpp dStarLite.cpp
+# test : main.cpp
+# g++ -Wall -lwiringPi -pthread -o out main.cpp web.cpp dspic.cpp mapGeneration.cpp dStarLite.cpp
+
+test: web.o dspic.o mapGeneration.o dStarLite.o main.o  
+	g++ -o test web.o dspic.o mapGeneration.o dStarLite.o main.o  
+
+web.o: web.cpp
+	g++ -o web.o -c web.cpp -Wall -lwiringPi -pthread 
+
+dspic.o: dspic.cpp 
+	g++ -o dspic.o -c dspic.cpp -Wall -lwiringPi -pthread 
+
+mapGeneration.o: mapGeneration.cpp 
+	g++ -o mapGeneration.o -c mapGeneration.cpp -Wall -lwiringPi -pthread 
+
+dStarLite.o: dStarLite.cpp 
+	g++ -o dStarLite.o -c dStarLite.cpp -Wall -lwiringPi -pthread 
+
+main.o: main.cpp web.hpp dspic.hpp mapGeneration.hpp dStarLite.hpp 
+	g++ -o main.o -c main.cpp -Wall -lwiringPi -pthread 
+
+
+
