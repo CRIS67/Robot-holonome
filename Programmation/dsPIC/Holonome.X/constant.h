@@ -211,9 +211,15 @@
 #define CODE_VAR_TRAJ_ROT_SPEED_LD  62
 #define CODE_VAR_TRAJ_ROT_ACC_LD    63
 
+#define CODE_VAR_DISTANCE_MAX_LD    64
+
 #define CODE_VAR_TICKS_PER_TURN_LD              70
 #define CODE_VAR_WHEEL_DIAMETER_LD              71
 #define CODE_VAR_DISTANCE_CENTER_TO_WHEEL_LD    72
+
+#define CODE_VAR_WHEEL_DIAMETER0_LD             73
+#define CODE_VAR_WHEEL_DIAMETER1_LD             74
+#define CODE_VAR_WHEEL_DIAMETER2_LD             75
 
 #define CODE_VAR_X_LD    80
 #define CODE_VAR_Y_LD    81

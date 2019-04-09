@@ -67,6 +67,11 @@ extern volatile long double wheelDiameter;
 extern volatile long double distanceCenterToWheel;
 
 
+extern volatile long double wheelDiameter0;
+extern volatile long double wheelDiameter1;
+extern volatile long double wheelDiameter2;
+
+
 extern volatile double funSpeed;
 extern volatile double funAcc;
 
@@ -79,6 +84,7 @@ extern volatile long double rotSpeed;  //rad/s
 extern volatile long double rotAcc;    //rad/s^2
 
 extern volatile uint8_t arrived;
+extern volatile long double distanceMax;
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Init">
 
@@ -296,20 +302,21 @@ char *dtoa(double value){
 void CheckMessages(){
     while(1){
         
+        // <editor-fold defaultstate="collapsed" desc="Get message">
         uint16_t nextDMAWriteAdress = DMA1STAL;
-        uint16_t writeIndex = nextDMAWriteAdress - (uint16_t)&RxDMABuffer;
+        uint16_t writeIndex = nextDMAWriteAdress - (uint16_t) & RxDMABuffer;
         int16_t nBytesToRead = writeIndex - start;
-        
-        if(nBytesToRead < 0)    //RX Buffer overflow
+
+        if (nBytesToRead < 0) //RX Buffer overflow
             nBytesToRead += RX_DMA_SIZE;
 
-        if(nBytesToRead == 0)   //no data in the buffer
+        if (nBytesToRead == 0) //no data in the buffer
             return;
-        
+
         uint8_t size = RxDMABuffer[start];
-        if (nBytesToRead < size + 1)    //the message is incomplete
+        if (nBytesToRead < size + 1) //the message is incomplete
             return;
-        
+
         /*Circular buffer index*/
         uint16_t iCode = (start + 1) % RX_DMA_SIZE;
         uint16_t iArg1 = (start + 2) % RX_DMA_SIZE;
@@ -338,10 +345,9 @@ void CheckMessages(){
             sendLog("Checksum error !\n");
             verbose = saveVerbose;
             return;
-            //cout << "cheksum error : " << (int)checksum << " =/= " << (int)(inBuf[start + size]) << endl;
         }
-        
-        unsigned char success = 0;
+        unsigned char success = 0; // </editor-fold>
+
         switch (RxDMABuffer[iCode]) {
                 // <editor-fold defaultstate="collapsed" desc="Start">
             case RX_CODE_START:
@@ -634,7 +640,6 @@ void CheckMessages(){
                         case CODE_VAR_TF_LD:
                             ptr = (uint8_t*) &tf;
                             break;// </editor-fold>
-
                         // <editor-fold defaultstate="collapsed" desc="Trajectory generation">
                         case CODE_VAR_TRAJ_LIN_SPEED_LD:
                             ptr = (uint8_t*) &linSpeed;
@@ -657,6 +662,16 @@ void CheckMessages(){
                             break;
                         case CODE_VAR_DISTANCE_CENTER_TO_WHEEL_LD:
                             ptr = (uint8_t*) &distanceCenterToWheel;
+                            break;
+                            
+                        case CODE_VAR_WHEEL_DIAMETER0_LD:
+                            ptr = (uint8_t*) &wheelDiameter0;
+                            break;
+                        case CODE_VAR_WHEEL_DIAMETER1_LD:
+                            ptr = (uint8_t*) &wheelDiameter1;
+                            break;
+                        case CODE_VAR_WHEEL_DIAMETER2_LD:
+                            ptr = (uint8_t*) &wheelDiameter2;
                             break; // </editor-fold>
                         // <editor-fold defaultstate="collapsed" desc="PID">
                         case CODE_VAR_P_SPEED_0_LD:

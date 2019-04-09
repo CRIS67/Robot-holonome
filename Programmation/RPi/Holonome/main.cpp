@@ -27,19 +27,6 @@ int main()
     std::cout << "Error:unable to create thread," << rc << std::endl;
     exit(-1);
     }
-	/*dspic.start();
-	dspic.stop();
-	dspic.servo(1,1500);
-	dspic.motor(1,-50);
-	dspic.motor(2,75);
-	dspic.go(1500,742,0,0);
-	dspic.turn(360,0,0);
-	dspic.AX12(1,512);
-	dspic.AX12(3,213);*/
-	/*float f = 42.0;
-	float *ptrF = &f;
-	char *ptrC = (char*)ptrF;
-	std::cout << (int)ptrC[0] << "/" << (int)ptrC[1] << "/" << (int)ptrC[2] << "/" << (int)ptrC[3] << "/" << std::endl;*/
     getchar();
 	
 	
@@ -54,20 +41,25 @@ int main()
 	dspic.setVarDouble64b(CODE_VAR_I_SPEED_1_LD,0);
 	dspic.setVarDouble64b(CODE_VAR_I_SPEED_2_LD,0);
 	
-	dspic.setVarDouble64b(CODE_VAR_P_DISTANCE_LD,0.02);
+	//dspic.setVarDouble64b(CODE_VAR_P_DISTANCE_LD,0.02);
 	//dspic.setVarDouble64b(CODE_VAR_P_DISTANCE_LD,0);
+	dspic.setVarDouble64b(CODE_VAR_P_DISTANCE_LD,0.1);
 	
 	dspic.setVarDouble64b(CODE_VAR_P_ANGLE_LD,0.05);
 	
-	dspic.setVarDouble64b(CODE_VAR_TRAJ_LIN_SPEED_LD,500);
-	dspic.setVarDouble64b(CODE_VAR_TRAJ_LIN_ACC_LD,3000);
+	dspic.setVarDouble64b(CODE_VAR_TRAJ_LIN_SPEED_LD,400);
+	dspic.setVarDouble64b(CODE_VAR_TRAJ_LIN_ACC_LD,500);
+	
+	double wheelDiameter0 = 63.8;
+	double wheelDiameter1 = 63.8;
+	double wheelDiameter2 = wheelDiameter1 * 0.95;
+	
+	dspic.setVarDouble64b(CODE_VAR_WHEEL_DIAMETER0_LD,wheelDiameter0);
+	dspic.setVarDouble64b(CODE_VAR_WHEEL_DIAMETER1_LD,wheelDiameter1);
+	dspic.setVarDouble64b(CODE_VAR_WHEEL_DIAMETER2_LD,wheelDiameter2);
+	
 	char c = 0;
 	char started = 0;
-	
-	/*dspic.setVarDouble64b(CODE_VAR_XC_LD,0);
-	dspic.setVarDouble64b(CODE_VAR_YC_LD,0);
-	dspic.setVarDouble64b(CODE_VAR_XF_LD,0);
-	dspic.setVarDouble64b(CODE_VAR_YF_LD,0);*/
 	
 	while(c != 's'){
 		puts("Press 's' to stop or any other button to start/stop the robot");
@@ -85,10 +77,12 @@ int main()
 			}
 		}
 	}
+	//Test circle
 	/*double radius = 200;
+	dspic.setVarDouble64b(CODE_VAR_DISTANCE_MAX_LD,1);	//reducing the arrival distance for more precise path following
 	dspic.setVarDouble64b(CODE_VAR_X_LD,1000+radius);
 	dspic.setVarDouble64b(CODE_VAR_Y_LD,1500);
-	for(double t = 0; t < 2*3.14159;t+=0.03){
+	for(double t = 0; t < 2*3.14159;t+=0.01){
 		double x = 1000 + radius * cos(t);
 		double y = 1500 + radius * sin(t);
 		dspic.setVarDouble64b(CODE_VAR_XC_LD,x);
@@ -97,20 +91,10 @@ int main()
 		dspic.setVarDouble64b(CODE_VAR_YF_LD,y);
 		delay(20);
 	}*/
-	
 	dspic.stop();
-	//dspic.start();
-    //dspic.getVar(CODE_VAR_ODO);
     //dspic.initPos(1000,1500,0);
-	//getchar();
-	//dspic.stop();
-	//getchar();
 	dspic.setVar8(CODE_VAR_VERBOSE,0);
 	puts("verbose set to 0");
-    
-	//std::cout << dspic.read() << std::endl;
-    //web.s = "hola ! \n";
-    //getchar();
     puts("exiting ...");
     //pthread_exit(NULL);
 
@@ -276,46 +260,6 @@ void *print(void *ptr) {
                                     //std::cout << "received from DsPIC : US[5] = " << dspic->US[5] << " (H = " << (int)msg[3] << " & L = " << (int)msg[4] << ")" << std::endl;
                                 }
                                 break;
-							/*case CODE_VAR_P_SPEED_L :
-								w->dspic->pidSpeedLeft.Kp = ((uint32_t)msg[3] << 24) + ((uint32_t)msg[4] << 16) + ((uint32_t)msg[5] << 8) + msg[6];
-								break;
-							case CODE_VAR_I_SPEED_L :
-								w->dspic->pidSpeedLeft.Ki = ((uint32_t)msg[3] << 24) + ((uint32_t)msg[4] << 16) + ((uint32_t)msg[5] << 8) + msg[6];
-								break;
-							case CODE_VAR_D_SPEED_L :
-								w->dspic->pidSpeedLeft.Kd = ((uint32_t)msg[3] << 24) + ((uint32_t)msg[4] << 16) + ((uint32_t)msg[5] << 8) + msg[6];
-								break;
-
-							case CODE_VAR_P_SPEED_R :
-								w->dspic->pidSpeedRight.Kp = ((uint32_t)msg[3] << 24) + ((uint32_t)msg[4] << 16) + ((uint32_t)msg[5] << 8) + msg[6];
-								break;
-							case CODE_VAR_I_SPEED_R :
-								w->dspic->pidSpeedRight.Ki = ((uint32_t)msg[3] << 24) + ((uint32_t)msg[4] << 16) + ((uint32_t)msg[5] << 8) + msg[6];
-								break;
-							case CODE_VAR_D_SPEED_R :
-								w->dspic->pidSpeedRight.Kd = ((uint32_t)msg[3] << 24) + ((uint32_t)msg[4] << 16) + ((uint32_t)msg[5] << 8) + msg[6];
-								break;
-
-							case CODE_VAR_P_DISTANCE :
-								w->dspic->pidDistance.Kp = ((uint32_t)msg[3] << 24) + ((uint32_t)msg[4] << 16) + ((uint32_t)msg[5] << 8) + msg[6];
-								break;
-							case CODE_VAR_I_DISTANCE :
-								w->dspic->pidDistance.Ki = ((uint32_t)msg[3] << 24) + ((uint32_t)msg[4] << 16) + ((uint32_t)msg[5] << 8) + msg[6];
-								break;
-							case CODE_VAR_D_DISTANCE :
-								w->dspic->pidDistance.Kd = ((uint32_t)msg[3] << 24) + ((uint32_t)msg[4] << 16) + ((uint32_t)msg[5] << 8) + msg[6];
-								break;
-
-							case CODE_VAR_P_ANGLE :
-								w->dspic->pidAngle.Kp = ((uint32_t)msg[3] << 24) + ((uint32_t)msg[4] << 16) + ((uint32_t)msg[5] << 8) + msg[6];
-								break;
-							case CODE_VAR_I_ANGLE :
-								w->dspic->pidAngle.Ki = ((uint32_t)msg[3] << 24) + ((uint32_t)msg[4] << 16) + ((uint32_t)msg[5] << 8) + msg[6];
-								break;
-							case CODE_VAR_D_ANGLE :
-								w->dspic->pidAngle.Kd = ((uint32_t)msg[3] << 24) + ((uint32_t)msg[4] << 16) + ((uint32_t)msg[5] << 8) + msg[6];
-								w->dspic->isPIDUpdated = true;
-								break;*/
                             case CODE_VAR_COEF_DISSYMETRY_LD:
                                 if(msg.size() > 8){
                                     double var;

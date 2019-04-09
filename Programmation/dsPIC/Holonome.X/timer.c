@@ -121,7 +121,7 @@ double angle1;
 
 double dx;
 double dy;
-double alpha;
+double alphaTraj;
 
 double totalDistance;
 double dist;
@@ -160,6 +160,10 @@ volatile long double prevc2 = 0;
 extern volatile uint8_t arrived;
 
 volatile long double alphaDebug = 0;
+volatile long double commandeXDebug = 0;
+volatile long double commandeYDebug = 0;
+
+volatile long double distanceMax = 10;  //The robot is arrived at its destination if its distance to the destination point is less than this value
 // </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="Init">
@@ -280,16 +284,7 @@ void __attribute__((interrupt, no_auto_psv)) _T1Interrupt(void) {
     speed1 = speed1 * 1000 / ticksPerTurn * wheelDiameter1 * PI;
     speed2 = speed2 * 1000 / ticksPerTurn * wheelDiameter2 * PI;
     
-    /*double speedX = 0;
-    double speedY = 0;
-    
-    speedX += speed0 * cos(ANGLE0 + theta) + speed1 * cos(ANGLE1+ theta) + speed2 * cos(ANGLE2+ theta);
-    speedY += speed0 * sin(ANGLE0 + theta) + speed1 * sin(ANGLE1+ theta) + speed2 * sin(ANGLE2+ theta);*/
-    
     /*equation internet : "Kinematics Control of an Omnidirectional Mobile Robot"*/
-    /*double xPoint = (2.0/3.0)*(-1.0*cos(theta)*speed0 + cos(((PI)/3)-theta)*speed1 + cos(((PI)/3)+theta)*speed2) ;
-    double yPoint = (2.0/3.0)*(-1.0*sin(theta)*speed0 - sin(((PI)/3)-theta)*speed1 + sin(((PI)/3)+theta)*speed2) ;
-    double thetaPoint = (1.0/(3*DISTANCE_CENTER_TO_WHEEL))*(speed0 + speed1 + speed2);*/
     
     double xPoint = -(2.0/3.0)*sin(theta) * speed0 -(2.0/3.0)*sin((PI/3)-theta) * speed1 + (2.0/3.0)*sin((PI/3)+theta) * speed2;
     double yPoint = (2.0/3.0)*cos(theta) * speed0 -(2.0/3.0)*cos((PI/3)-theta) * speed1 -(2.0/3.0)*cos((PI/3)+theta) * speed2;
@@ -318,7 +313,7 @@ void __attribute__((interrupt, no_auto_psv)) _T1Interrupt(void) {
         long double commandeY = 0;
         long double distancef = sqrt((xf-x)*(xf-x)+(yf-y)*(yf-y));
         long double alpha = 0;
-        if (distancef > 10){
+        if (distancef > distanceMax){
             arrived = 0;
             alpha = atan2l(yf-y,xf-x);
             alphaDebug = alpha;
@@ -328,10 +323,8 @@ void __attribute__((interrupt, no_auto_psv)) _T1Interrupt(void) {
         else{
             arrived = 1;
         }
-           
-        /*long double sc0 = -1.0 * cos(theta) * commandeX - sin(theta)*commandeY + DISTANCE_CENTER_TO_WHEEL * commandeT;
-        long double sc1 = cos((PI/3) - theta) * commandeX + sin((PI/3) - theta)*commandeY + DISTANCE_CENTER_TO_WHEEL * commandeT;
-        long double sc2 = cos((PI/3) + theta) * commandeX + sin((PI/3) + theta)*commandeY + DISTANCE_CENTER_TO_WHEEL * commandeT;*/
+        commandeXDebug = commandeX;
+        commandeYDebug = commandeY;
         
         long double sc0 = -1.0 * sin(theta) * commandeX + cos(theta)*commandeY + distanceCenterToWheel * commandeT;
         long double sc1 = -sin((PI/3) - theta) * commandeX -cos((PI/3) - theta)*commandeY + distanceCenterToWheel * commandeT;
@@ -399,6 +392,10 @@ void __attribute__((interrupt, no_auto_psv)) _T1Interrupt(void) {
         else{
             sendMotor(0,0,0);
         }
+        if(arrived){
+            sendMotor(0,0,0);
+        }
+            
         
         // <editor-fold defaultstate="collapsed" desc="Plots">
         //plot(2,(uint32_t)((int32_t)(commandeT*1000)));
@@ -439,11 +436,9 @@ void __attribute__((interrupt, no_auto_psv)) _T1Interrupt(void) {
         switch (statePathGeneration) {
             case 0:
                 break;
-            case 1: //1st Rotation
+            case 1: //Init
                 statePathGeneration = 2;
                 stateTrap = 1;
-
-                //thetac = theta0 + phi*sign;
                 xf = cx;
                 yf = cy;
                 tf = ct;
@@ -451,56 +446,8 @@ void __attribute__((interrupt, no_auto_psv)) _T1Interrupt(void) {
                 x_0 = x;
                 dx = cx - x_0;
                 dy = cy - y_0;
-                alpha = atan2(dy, dx);
+                alphaTraj = atan2(dy, dx);
                 totalDistance = sqrt(dx * dx + dy * dy);
-                /*switch (stateTrap) {
-                    case 1: //acceleration
-                        if (angularVelocity < maxAngularVelocity && angle < phi / 2) {
-                            angularVelocity += AngularAcceleration * TE;
-                            angle += TE * (prevAngularVelocity + angularVelocity) / 2;
-                            thetac = theta0 + angle * sign;
-                            prevAngularVelocity = angularVelocity;
-                        } else {
-                            stateTrap = 2;
-
-                            angle1 = angle;
-                        }
-                        break;
-                    case 2: //constant speed
-                        if (angle < phi - angle1) {
-                            angle += TE * angularVelocity;
-                            thetac = theta0 + angle * sign;
-                            prevAngularVelocity = angularVelocity;
-                        } else {
-                            stateTrap = 3;
-
-                            AngularAcceleration = -AngularAcceleration;
-                        }
-                        break;
-                    case 3: //deceleration
-                        if (angularVelocity > 0 && angle < phi) {
-                            angularVelocity += AngularAcceleration * TE;
-                            angle += TE * (prevAngularVelocity + angularVelocity) / 2;
-                            thetac = theta0 + angle * sign;
-                            prevAngularVelocity = angularVelocity;
-                        } else {
-                            statePathGeneration = 2;
-                            stateTrap = 1;
-
-                            thetac = theta0 + phi*sign;
-                            xf = cx;
-                            yf = cy;
-                            tf = ct;
-                            y_0 = y;
-                            x_0 = x;
-                            dx = cx - x_0;
-                            dy = cy - y_0;
-                            alpha = atan2(dy, dx);
-                            totalDistance = sqrt(dx * dx + dy * dy);
-
-                        }
-                        break;
-                }*/
                 break;
             case 2: //Translation
                 switch (stateTrap) {
@@ -508,8 +455,8 @@ void __attribute__((interrupt, no_auto_psv)) _T1Interrupt(void) {
                         if (speed < speedMax && dist < totalDistance / 2) {
                             speed += acc * TE;
                             dist += TE * (precSpeed + speed) / 2;
-                            xc = x_0 + dist * cos(alpha);
-                            yc = y_0 + dist * sin(alpha);
+                            xc = x_0 + dist * cos(alphaTraj);
+                            yc = y_0 + dist * sin(alphaTraj);
                             precSpeed = speed;
                         } else {
                             stateTrap = 2;
@@ -522,8 +469,8 @@ void __attribute__((interrupt, no_auto_psv)) _T1Interrupt(void) {
                     case 2: //constant speed
                         if (dist < totalDistance - dist1) { //Condition
                             dist += TE * speed;
-                            xc = x_0 + dist * cos(alpha);
-                            yc = y_0 + dist * sin(alpha);
+                            xc = x_0 + dist * cos(alphaTraj);
+                            yc = y_0 + dist * sin(alphaTraj);
                             precSpeed = speed;
                         } else {
                             stateTrap = 3;
@@ -535,8 +482,8 @@ void __attribute__((interrupt, no_auto_psv)) _T1Interrupt(void) {
                         if (speed > 0 && dist < totalDistance) { //Condition		//v > 0			/		d < totalDistance
                             speed += acc * TE;
                             dist += TE * (precSpeed + speed) / 2;
-                            xc = x_0 + dist * cos(alpha);
-                            yc = y_0 + dist * sin(alpha);
+                            xc = x_0 + dist * cos(alphaTraj);
+                            yc = y_0 + dist * sin(alphaTraj);
                             precSpeed = speed;
                         } else {
                             statePathGeneration = 0;
@@ -617,521 +564,4 @@ void delay_us(uint32_t delay){
 void delay_ms(uint32_t delay){
     uint32_t tick = millis();
     while(millis() - tick < delay);
-}
-
-//void __attribute__((interrupt, no_auto_psv)) _T1Interrupt(void) {
-void  save_T1Interrupt(void) {
-    IFS0bits.T1IF = 0; //Clear Timer1 interrupt flag
-    // <editor-fold defaultstate="collapsed" desc="Calcul position ">
-    
-    //save value
-    int16_t ticksL = POS1CNTL;
-    int16_t ticksR = POS2CNTL;
-    //reset value
-    POS1CNTL = 0x0000;
-    POS2CNTL = 0x0000;
-    
-    /*test Kahan*/
-    /*ticksL = 10;
-    ticksR = 10;*/
-    
-    speedLSum += ticksL;
-    speedRSum += ticksR;
-    
-    long double deltaDL = ticksL * coef_dissymmetry;
-    long double deltaDR = ticksR;
-    
-    /*deltaDL = deltaDL * mm_per_ticks * coef_dissymmetry;   //Ticks -> mm
-    deltaDR = deltaDR * mm_per_ticks;*/
-    
-    long double deltaD = (deltaDL + deltaDR) * mm_per_ticks / 2;
-    //long double deltaT = (deltaDR - deltaDL) / distance_between_encoder_wheels;
-    long double deltaT = (deltaDR - deltaDL) * rad_per_ticks;
-
-    theta += deltaT;
-    x += deltaD * cosl(theta);
-    y += deltaD * sinl(theta);
-    /*test Kahan*/
-    //deltaD = 1;
-    //deltaT = 0.002;
-    
-    // <editor-fold defaultstate="collapsed" desc="Kahan summation algorithm">
-    /*long double yT = deltaT - kahanT;
-    long double tT = theta + yT;
-    kahanT = (tT - theta) - yT;
-    theta = tT;
-
-    //theta += deltaT;
-    long double deltaX = deltaD * cosl(theta);
-    long double deltaY = deltaD * sinl(theta);
-    
-    long double yX = deltaX - kahanX;
-    long double tX = x + yX;
-    kahanX = (tX - x) - yX;
-    x = tX;
-    
-    long double yY = deltaY - kahanY;
-    long double tY = y + yY;
-    kahanY = (tY - y) - yY;
-    y = tY;*/
-    
-    /*long double absError = kahanX;
-    if(absError < 0)
-        absError = -absError;
-    kahanErrorX += absError;
-    
-    absError = kahanY;
-    if(absError < 0)
-        absError = -absError;
-    kahanErrorY += absError;
-    
-    absError = kahanT;
-    if(absError < 0)
-        absError = -absError;
-    kahanErrorT += absError;*/
-    
-    //x += deltaD * cos(theta);
-    //y += deltaD * sin(theta);
-    // </editor-fold>
-    // </editor-fold>
-
-    // <editor-fold defaultstate="collapsed" desc="Asservissement">
-    n++;
-    if (n >= N_ASSERV) {//1000
-        n = 0;
-
-        long double speedL = speedLSum; //  /0.01 -> 10ms
-        long double speedR = speedRSum;
-
-        speedL = speedL * mm_per_ticks * 1000 / N_ASSERV;
-        speedR = speedR * mm_per_ticks * 1000 / N_ASSERV;
-
-        speedLSum = 0;
-        speedRSum = 0;
-        
-        //smoothSpeedL = smoothSpeedL + SMOOTHING_FACTOR * (speedL - smoothSpeedL);
-        //smoothSpeedR = smoothSpeedR + SMOOTHING_FACTOR * (speedR - smoothSpeedR);
-        /*int i;
-        for(i = 1; i < N_SMOOTHING; i++){
-            smoothSpeedL = smoothSpeedL + SMOOTHING_FACTOR * (speedL - smoothSpeedL);
-            smoothSpeedR = smoothSpeedR + SMOOTHING_FACTOR * (speedR - smoothSpeedR);
-        }*/
-
-        double thetaRobotPoint = atan2(yc - y, xc - x);
-        double thetaRobotPointFinal = atan2(yf - y, xf - x);
-        if (back)
-            thetaRobotPointFinal -= PI;
-        while (thetaRobotPointFinal - (double)theta < -PI)
-            thetaRobotPointFinal += 2 * PI;
-        while (thetaRobotPointFinal - (double)theta > PI)
-            thetaRobotPointFinal -= 2 * PI;
-        if (thetaRobotPointFinal - (double)theta < -PI / 2)
-            thetaRobotPointFinal += PI;
-        if (thetaRobotPointFinal - (double)theta > PI / 2)
-            thetaRobotPointFinal -= PI;
-        double distFinal = sqrt((x - xf)*(x - xf) + (y - yf)*(y - yf));
-
-        double errorD = sqrt((x - xc)*(x - xc) + (y - yc)*(y - yc));
-
-        // <editor-fold defaultstate="collapsed" desc="gestion marche arrière">
-        double thetaDiff = (double)theta - thetaRobotPoint;
-        while (thetaDiff > PI) {
-            thetaDiff -= 2 * PI;
-        }
-        while (thetaDiff < -PI) {
-            thetaDiff += 2 * PI;
-        }
-        if (thetaDiff > -PI / 2 && thetaDiff < PI / 2) {
-            errorD = -errorD;
-        }// </editor-fold>
-
-
-        if (distFinal > DIST_AIM_POINT || distFinal < -DIST_AIM_POINT)
-            setSetPoint(&pidAngle, thetaRobotPointFinal);
-        else
-            setSetPoint(&pidAngle, thetac);
-        //setSetPoint(&pidAngle,thetac);
-
-        double rD = compute(&pidDistance, errorD);
-        double rA = compute(&pidAngle, (double)theta);
-
-        /*if (pidDistance.prevError < MAX_ERROR_D && pidDistance.prevError > -MAX_ERROR_D && distFinal < MAX_ERROR_D && (finalPoint == 1)) {
-            rD = 0;
-        }*/
-        
-        // "hystheresis"
-        if(distFinal < MAX_ERROR_D_INF){
-            nearPointDistance = 1;
-        }
-        else if(distFinal > MAX_ERROR_D_SUP){
-            nearPointDistance = 0;
-        }
-        if(pidAngle.prevError < MAX_ERROR_A_INF && pidAngle.prevError > -MAX_ERROR_A_INF){
-            nearPointAngle = 1;
-        }
-        else if(pidAngle.prevError > MAX_ERROR_A_SUP && pidAngle.prevError < -MAX_ERROR_A_SUP){
-            nearPointAngle = 0;
-        }
-        if(nearPointDistance && finalPoint){
-            rD = 0;
-            if(nearPointAngle){
-                rA = 0;
-            }
-        }
-        
-        
-        /*if(pidAngle.prevError < MAX_ERROR_A && pidAngle.prevError > -MAX_ERROR_A){
-            rA = 0;
-        }*/
-
-        setSetPoint(&pidSpeedLeft, rD - rA);
-        setSetPoint(&pidSpeedRight, rD + rA);
-
-        /*setSetPoint(&pidSpeedLeft, xc);
-        setSetPoint(&pidSpeedRight, xc);*/
-        
-        double commandeL = compute(&pidSpeedLeft, speedL);
-        double commandeR = compute(&pidSpeedRight, speedR);
-
-        if (pidDistance.prevError < MAX_ERROR_D && pidDistance.prevError > -MAX_ERROR_D && pidAngle.prevError < MAX_ERROR_A && pidAngle.prevError > -MAX_ERROR_A && speedL < MAX_SPEED_STOP && speedL > -MAX_SPEED_STOP && speedR < MAX_SPEED_STOP && speedR > -MAX_SPEED_STOP && (finalPoint == 1)) {
-            commandeL = 0;
-            commandeR = 0;
-            pidSpeedLeft.sumI = 0;
-            pidSpeedLeft.sumI = 0;
-            arrived = 1;
-        } else
-            arrived = 0;
-
-
-        /*if(pidDistance.prevError < MAX_ERROR_D && pidDistance.prevError > -MAX_ERROR_D && pidAngle.prevError < MAX_ERROR_A && pidAngle.prevError > -MAX_ERROR_A && speedL < MAX_SPEED_STOP && speedL > -MAX_SPEED_STOP && speedR < MAX_SPEED_STOP && speedR > -MAX_SPEED_STOP){
-            commandeL = 0;
-            commandeR = 0;
-            pidSpeedLeft.sumI = 0;
-            pidSpeedLeft.sumI = 0;
-            arrived = 1;
-        }
-        else
-            arrived = 0;*/
-
-        // <editor-fold defaultstate="collapsed" desc="Limit acceleration">
-        /*uint8_t variationR,variationL,prevVariationR,prevVariationL;
-        if((commandeR - prevCommandeR) >= 0)
-            variationR = 1;
-        else
-            variationR = 0;
-        if((prevCommandeR - prevPrevCommandeR) >= 0)
-            prevVariationR = 1;
-        else
-            prevVariationR = 0;
-        
-        if((commandeL - prevCommandeL) >= 0)
-            variationL = 1;
-        else
-            variationL = 0;
-        if((prevCommandeL - prevPrevCommandeL) >= 0)
-            prevVariationL = 1;
-        else
-            prevVariationL = 0;*/
-        //if(variationR != prevVariationR){
-        if (commandeR - prevCommandeR > var_ACC_MAX) {
-            commandeR = prevCommandeR + var_ACC_MAX;
-            //plot(25,-5000);
-        } else if (commandeR - prevCommandeR < -var_ACC_MAX) {
-            commandeR = prevCommandeR - var_ACC_MAX;
-            //plot(25,-4000);
-        }
-        //}
-
-        //if(variationL != prevVariationL){
-        if (commandeL - prevCommandeL > var_ACC_MAX) {
-            commandeL = prevCommandeL + var_ACC_MAX;
-            //plot(15,-5000);
-        } else if (commandeL - prevCommandeL < -var_ACC_MAX) {
-            commandeL = prevCommandeL - var_ACC_MAX;
-            //plot(15,-4000);
-        }
-        //}
-        // </editor-fold>
-
-        //prevPrevCommandeL = prevCommandeL;
-        //prevPrevCommandeR = prevCommandeR;
-
-        prevCommandeL = commandeL;
-        prevCommandeR = commandeR;
-
-
-        if (!stop) {
-            if (detectUS) {
-                //unsigned char ok = 1,i;
-                /*for(i = 0; i < 3; i++){
-                    if(US[i] > 300 && US[i] < 1000){
-                        hUS++;
-                        //ok = 0;
-                        printRpi(("US["));
-                        printRpi(itoa((int)i));
-                        printRpi("] = ");
-                        printRpi(itoa((int)US[i]));
-                    }
-                }*/
-                if (sensDetectUS) {
-                    if ((US[1] > 300 && US[1] < 1000) || (US[0] > 300 && US[0] < 1000) || (US[2] > 300 && US[2] < 1000)) {
-                        hUS++;
-                    } else
-                        hUS = 0;
-                } else {
-                    if (US[4] > 300 && US[4] < 1000) {
-                        hUS++;
-                    } else
-                        hUS = 0;
-                }
-                if (hUS > 10) {
-                    //sendToMotor(0, 0);
-                    while (1);
-                }
-                /*if(!ok){
-                    sendToMotor(0,0);
-                    while(1);
-                }*/
-            }
-            //testSendToMotor(commandeR, commandeL);
-            if (pidDistance.prevError > 60 || pidDistance.prevError < -60 || pidAngle.prevError > 0.9 || pidAngle.prevError < -0.9 || pidSpeedLeft.prevError > 21 || pidSpeedLeft.prevError < -21 || pidSpeedRight.prevError > 21 || pidSpeedRight.prevError < -21){
-                /*while (1) {
-                    testSendToMotor(0, 0);
-                }*/
-                //testSendToMotor(0, 0);
-            }
-        }
-        /*if(nplot == 4){
-            nplot = 0;
-            plot(11,(uint32_t)((int32_t)(speedL*1000)));
-            plot(12,(uint32_t)((int32_t)(pidSpeedLeft.setPoint*1000)));
-
-            plot(21,(uint32_t)((int32_t)(speedR*1000)));
-            plot(22,(uint32_t)((int32_t)(pidSpeedRight.setPoint*1000)));
-
-            plot(31,(uint32_t)((int32_t)(x*1000)));
-            plot(32,(uint32_t)((int32_t)(xc*1000)));
-            plot(33,(uint32_t)((int32_t)(y*1000)));
-            plot(34,(uint32_t)((int32_t)(yc*1000)));
-
-            plot(41,(uint32_t)((int32_t)(theta*1000*180/PI)));
-            plot(42,(uint32_t)((int32_t)(thetac*1000*180/PI)));
-        }
-        else{
-            nplot++;
-        }*/
-        
-        /*plot(1,(uint32_t)((int32_t)(speedL*1000))); //(uint32_t)(-10 = 0) != (uint32_t)(int32_t)(-10)
-        plot(2,(uint32_t)((int32_t)(pidSpeedLeft.setPoint*1000)));
-        plot(5,(uint32_t)((int32_t)(pidSpeedLeft.debugCommande*10000)));
-        plot(6,(uint32_t)((int32_t)(pidSpeedLeft.debugCommandeP*10000)));
-        plot(7,(uint32_t)((int32_t)(pidSpeedLeft.debugCommandeI*10000)));
-        plot(8,(uint32_t)((int32_t)(pidSpeedLeft.debugCommandeD*10000)));*/
-        
-        //plot(1,(uint32_t)((int32_t)(x))); //(uint32_t)(-10 = 0) != (uint32_t)(int32_t)(-10)
-        //plot(2,(uint32_t)((int32_t)(xc)));
-        
-        /*plot(5,(uint32_t)((int32_t)(pidDistance.debugCommande*10000)));
-        plot(6,(uint32_t)((int32_t)(pidDistance.debugCommandeP*10000)));
-        plot(7,(uint32_t)((int32_t)(pidDistance.debugCommandeI*10000)));
-        plot(8,(uint32_t)((int32_t)(pidDistance.debugCommandeD*10000)));*/
-        
-        //print("=)\n");
-        // <editor-fold defaultstate="collapsed" desc="Génération de trajectoire">
-        /*Génération de trajectoire*/
-        if (statePathGeneration != 0) {
-            // <editor-fold defaultstate="collapsed" desc="Plots">
-            /*plot(1, (uint32_t) (int32_t) (pidDistance.prevError * 100));
-            plot(2, (uint32_t) (int32_t) (pidAngle.prevError * 10000));
-            plot(3, (uint32_t) (int32_t) (pidSpeedLeft.prevError * 1000));
-            plot(4, (uint32_t) (int32_t) (pidSpeedRight.prevError * 1000));*/
-
-            //plot(1,(uint32_t)(int32_t)(thetac*1000));
-            //plot(2,(uint32_t)(int32_t)(angularVelocity*1000));
-            //plot(3,(uint32_t)(int32_t)(angle*1000));
-            //plot(4,(uint32_t)(int32_t)(theta*1000));
-            //plot(11,(uint32_t)(int32_t)(speedL*1000));
-            //plot(21,(uint32_t)(int32_t)(speedR*1000));
-            //plot(31,(uint32_t)(int32_t)(speedR*1000));
-            //plot(41,(uint32_t)(int32_t)(speedR*1000));
-            //plot(12,(uint32_t)(int32_t)(pidSpeedLeft.setPoint*1000));
-            //plot(22,(uint32_t)(int32_t)(pidSpeedRight.setPoint*1000));
-            /*
-            int32_t pwmR = PWM_R;
-            if(SENS_R == 0)
-                pwmR = -pwmR;
-            int32_t pwmL = PWM_L;
-            if(SENS_L == 0)
-                pwmL = -pwmL;
-            plot(13,(uint32_t)PWM_R);
-            plot(23,(uint32_t)PWM_L);
-            plot(14,(((uint32_t)SENS_R)*5000)-1000);
-            plot(24,(((uint32_t)SENS_L)*5000)-1000);*/
-
-            //plot(31,(((uint32_t)((pidAngle.prevError*180000/PI)+5000))));
-            /*plot(31,(uint32_t)(int32_t)(x));
-            plot(32,(uint32_t)(int32_t)(y));
-            plot(33,(uint32_t)(int32_t)(xc));
-            plot(34,(uint32_t)(int32_t)(yc));*/
-            /*plot(1,(uint32_t)(int32_t)(pidSpeedLeft.prevSmoothError*1000));
-            plot(2,(uint32_t)(int32_t)(pidSpeedLeft.prevError*1000));
-            plot(3,(uint32_t)(int32_t)(pidSpeedRight.prevSmoothError*1000));
-            plot(4,(uint32_t)(int32_t)(pidSpeedRight.prevError*1000));*/
-
-            /*plot(41,(uint32_t)(int32_t)(theta*100000));
-            plot(42,(uint32_t)(int32_t)(thetac*100000));
-            plot(43,(uint32_t)(int32_t)(pidAngle.setPoint*100000));*/
-
-            //plot(5,(uint32_t)(int32_t)(statePathGeneration*1000));
-            //plot(6,(uint32_t)(int32_t)(stateTrap*1000));// </editor-fold>
-        }
-        switch (statePathGeneration) {
-            case 0:
-                break;
-            case 1: //1st Rotation
-                switch (stateTrap) {
-                    case 1: //acceleration
-                        if (angularVelocity < maxAngularVelocity && angle < phi / 2) {
-                            angularVelocity += AngularAcceleration * TE;
-                            angle += TE * (prevAngularVelocity + angularVelocity) / 2;
-                            thetac = theta0 + angle * sign;
-                            prevAngularVelocity = angularVelocity;
-                        } else {
-                            stateTrap = 2;
-
-                            angle1 = angle;
-                        }
-                        break;
-                    case 2: //constant speed
-                        if (angle < phi - angle1) {
-                            angle += TE * angularVelocity;
-                            thetac = theta0 + angle * sign;
-                            prevAngularVelocity = angularVelocity;
-                        } else {
-                            stateTrap = 3;
-
-                            AngularAcceleration = -AngularAcceleration;
-                        }
-                        break;
-                    case 3: //deceleration
-                        if (angularVelocity > 0 && angle < phi) {
-                            angularVelocity += AngularAcceleration * TE;
-                            angle += TE * (prevAngularVelocity + angularVelocity) / 2;
-                            thetac = theta0 + angle * sign;
-                            prevAngularVelocity = angularVelocity;
-                        } else {
-                            statePathGeneration = 2;
-                            stateTrap = 1;
-
-                            thetac = theta0 + phi*sign;
-                            xf = cx;
-                            yf = cy;
-                            tf = ct;
-                            y_0 = y;
-                            x_0 = x;
-                            dx = cx - x_0;
-                            dy = cy - y_0;
-                            alpha = atan2(dy, dx);
-                            totalDistance = sqrt(dx * dx + dy * dy);
-
-                        }
-                        break;
-                }
-                break;
-            case 2: //Translation
-                switch (stateTrap) {
-                    case 1: //acceleration
-                        if (speed < speedMax && dist < totalDistance / 2) {
-                            speed += acc * TE;
-                            dist += TE * (precSpeed + speed) / 2;
-                            xc = x_0 + dist * cos(alpha);
-                            yc = y_0 + dist * sin(alpha);
-                            precSpeed = speed;
-                        } else {
-                            stateTrap = 2;
-
-                            dist1 = dist;
-                            if (speed > speedMax)
-                                speed = speedMax;
-                        }
-                        break;
-                    case 2: //constant speed
-                        if (dist < totalDistance - dist1) { //Condition
-                            dist += TE * speed;
-                            xc = x_0 + dist * cos(alpha);
-                            yc = y_0 + dist * sin(alpha);
-                            precSpeed = speed;
-                        } else {
-                            stateTrap = 3;
-
-                            acc = -acc;
-                        }
-                        break;
-                    case 3: //deceleration
-                        if (speed > 0 && dist < totalDistance) { //Condition		//v > 0			/		d < totalDistance
-                            speed += acc * TE;
-                            dist += TE * (precSpeed + speed) / 2;
-                            xc = x_0 + dist * cos(alpha);
-                            yc = y_0 + dist * sin(alpha);
-                            precSpeed = speed;
-                        } else {
-                            statePathGeneration = 0;
-                            stateTrap = 1;
-
-                            xc = cx;
-                            yc = cy;
-
-                            finalPoint = 1;
-
-                        }
-                        break;
-
-                }
-                break;
-        }
-        // </editor-fold>
-    }// </editor-fold>
-
-    // <editor-fold defaultstate="collapsed" desc="US">
-    n_us++;
-    if (n_us >= N_US) {
-        n_us = 0;
-        if (!US_received)
-            US[i_us] = 9999;
-        i_us++;
-        if (i_us >= NB_US)
-            i_us = 0;
-        switch (i_us) {
-            case 0:
-                TRIG_US_0 = 1;
-                break;
-            case 1:
-                TRIG_US_1 = 1;
-                break;
-            case 2:
-                TRIG_US_2 = 1;
-                break;
-            case 3:
-                TRIG_US_3 = 1;
-                break;
-            case 4:
-                TRIG_US_4 = 1;
-                break;
-            case 5:
-                TRIG_US_5 = 1;
-                break;
-        }
-        unsigned char i = 0;
-        for (i = 0; i < NB_US; i++) {
-            US_ON[i] = 0;
-            US_R[i] = 0;
-        }
-        US_received = 0;
-        US_ON[i_us] = 1;
-        T5CONbits.TON = 1; //enable Timer3
-        /*print("toggle ");
-        print(itoa((int)i_us));
-        print("\n");*/
-    }
-    // </editor-fold>
 }
