@@ -141,8 +141,11 @@ namespace Sockets
 
             // Prints buffer to the console
             for(int i=0; i<buffer.size(); i++)
-            {
-                std::cout << buffer.at(i);
+            {	
+            	if(buffer.at(i) != ';')
+            		std::cout << static_cast<int>(buffer.at(i));
+        		else 
+        			std::cout << buffer.at(i); 
             }
             std::cout << std::endl;
             buffer.clear();
@@ -150,3 +153,4 @@ namespace Sockets
     }
 
 }
+

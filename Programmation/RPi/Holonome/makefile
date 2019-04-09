@@ -1,5 +1,5 @@
 test: web.o dspic.o mapGeneration.o dStarLite.o Sockets.o main.o  
-	g++ -o test web.o dspic.o mapGeneration.o dStarLite.o main.o -Wall -lwiringPi -pthread 
+	g++ -o test web.o dspic.o mapGeneration.o dStarLite.o Socket.o main.o -Wall -lwiringPi -pthread 
 
 web.o: web.cpp
 	g++ -o web.o -c web.cpp -Wall -lwiringPi -pthread 
