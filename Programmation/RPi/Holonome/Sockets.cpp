@@ -143,7 +143,7 @@ namespace Sockets
             for(int i=0; i<buffer.size(); i++)
             {	
             	if(buffer.at(i) != ';')
-            		std::cout << static_cast<uint8_t>(buffer.at(i));
+            		std::cout << (int) static_cast<uint8_t>(buffer.at(i));
         		else 
         			std::cout << buffer.at(i); 
             }
