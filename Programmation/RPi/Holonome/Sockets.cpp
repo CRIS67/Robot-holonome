@@ -119,7 +119,7 @@ namespace Sockets
             if ( pending <= 0 || pending != sizeof(unsigned short) )
             {
                 std::cout << "Error ! Problem with expected size of the message. Client disconnected";
-                continue;
+                return -1;
             }
 
             expectedSize = ntohs(expectedSize); // converts network data to host data
@@ -131,7 +131,7 @@ namespace Sockets
                 {
                     std::cout << "Error ! Problem getting the message";
                     buffer.clear();
-                    return -1;
+                    return -2;
                 }
                 else
                 {
@@ -143,7 +143,7 @@ namespace Sockets
             for(int i=0; i<buffer.size(); i++)
             {	
             	if(buffer.at(i) != ';')
-            		std::cout << static_cast<uint16_t>(buffer.at(i));
+            		std::cout << static_cast<uint8_t>(buffer.at(i));
         		else 
         			std::cout << buffer.at(i); 
             }
