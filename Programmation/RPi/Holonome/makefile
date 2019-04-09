@@ -1,4 +1,4 @@
-test: web.o dspic.o mapGeneration.o dStarLite.o main.o  
+test: web.o dspic.o mapGeneration.o dStarLite.o Sockets.o main.o  
 	g++ -o test web.o dspic.o mapGeneration.o dStarLite.o main.o -Wall -lwiringPi -pthread 
 
 web.o: web.cpp
@@ -13,7 +13,10 @@ mapGeneration.o: mapGeneration.cpp
 dStarLite.o: dStarLite.cpp 
 	g++ -o dStarLite.o -c dStarLite.cpp -Wall -lwiringPi -pthread 
 
-main.o: main.cpp web.hpp dspic.hpp mapGeneration.hpp dStarLite.hpp 
+Sockets.o: Sockets.cpp
+	g++ -o Sockets.o -c Sockets.cpp -Wall -lwiringPi -pthread 
+
+main.o: main.cpp web.hpp dspic.hpp mapGeneration.hpp dStarLite.hpp Sockets.h
 	g++ -o main.o -c main.cpp -Wall -lwiringPi -pthread 
 
 

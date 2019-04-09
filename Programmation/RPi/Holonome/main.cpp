@@ -5,6 +5,12 @@
 #include <queue>
 #include "web.hpp"
 #include "dspic.hpp"
+#include <thread>
+#include <mutex>
+
+
+// PIM includes 
+#include "Sockets.h"
 
 // DStarIncludes 
 #include <utility>
@@ -39,7 +45,14 @@ mappedNodes knownNodes; // node the robot can see
 void *print(void *ptr);
 
 int main()
-{
+{   
+
+    /*==============PIM======================*/
+    std::thread pimServer(Sockets::startServer); 
+    pimServer.join(); 
+    getchar();
+
+    /*==============PIM======================*/
 	DsPIC dspic;
     pthread_t thread_print;
 
@@ -71,7 +84,7 @@ int main()
 	puts("verbose set to 1");
 
     /*=============DStarImplementation===================*/
-
+    /*
     //dsPic initialization 
     dspic.start(); 
 
@@ -107,7 +120,7 @@ int main()
         std::cout << "Press enter to continue" << std::endl; 
         getchar();
     }
-
+    */
     /*=============DStarImplementation===================*/
 
     std::cout << "Press enter to continue" << std::endl; 
