@@ -59,7 +59,13 @@ uint32_t testPID = 0;
 extern long double coef_dissymmetry;
 extern long double mm_per_ticks;
 extern long double rad_per_ticks;
-extern long double distance_between_encoder_wheels;// </editor-fold>
+extern long double distance_between_encoder_wheels;
+
+
+extern volatile long double ticksPerTurn;
+extern volatile long double wheelDiameter;
+extern volatile long double distanceCenterToWheel;
+
 
 extern volatile double funSpeed;
 extern volatile double funAcc;
@@ -67,6 +73,13 @@ extern volatile double funAcc;
 extern volatile double funAngularSpeed;
 extern volatile double funAngularAcc;
 
+extern volatile long double linSpeed;  //mm/s
+extern volatile long double linAcc;    //mm/s^2
+extern volatile long double rotSpeed;  //rad/s
+extern volatile long double rotAcc;    //rad/s^2
+
+extern volatile uint8_t arrived;
+// </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Init">
 
 void initUART() {
@@ -355,22 +368,24 @@ void CheckMessages(){
             {
                 uint8_t var = RxDMABuffer[iArg1];
                 uint8_t type = RxDMABuffer[iArg2];
+                // <editor-fold defaultstate="collapsed" desc="8bits">
                 if (type == VAR_8b) {
                     uint8_t value = RxDMABuffer[iArg3];
                     switch (var) {
-                        /*case VAR_STATE:
-                            state = value;
-                            break;*/
+                            /*case VAR_STATE:
+                                state = value;
+                                break;*/
                         case CODE_VAR_VERBOSE:
                             verbose = value;
                             verbose = 1;
                             sendLog("verbose set to ");
-                            sendLog(itoa((int)value));
+                            sendLog(itoa((int) value));
                             verbose = value;
                             break;
                     }
 
-                }
+                }// </editor-fold>
+                // <editor-fold defaultstate="collapsed" desc="16bits">
                 else if (type == VAR_16b) {
                     int16_t value = (RxDMABuffer[iArg3] << 8) + RxDMABuffer[iArg4]; //or ptr / union / memcpy
                     switch (var) {
@@ -381,12 +396,13 @@ void CheckMessages(){
                             state = value;
                             break;
                     }
-                }
+                }// </editor-fold>
+                // <editor-fold defaultstate="collapsed" desc="32bits">
                 else if (type == VAR_32b) {
-                    uint32_t value = ((uint32_t)RxDMABuffer[iArg3] << 24) + ((uint32_t)RxDMABuffer[iArg4] << 16) + ((uint32_t)RxDMABuffer[iArg5] << 8) + RxDMABuffer[iArg6];
+                    uint32_t value = ((uint32_t) RxDMABuffer[iArg3] << 24) + ((uint32_t) RxDMABuffer[iArg4] << 16) + ((uint32_t) RxDMABuffer[iArg5] << 8) + RxDMABuffer[iArg6];
                     switch (var) {
                         case CODE_VAR_P_SPEED_L:
-                            pidSpeed0.Kp = (double)value / COEF_SCALE_PID;
+                            pidSpeed0.Kp = (double) value / COEF_SCALE_PID;
                             sendLog("Changed P1 : speed left to ");
                             //sendLog(itoa((int)(pidSpeedLeft.Kp*COEF_SCALE_PID)));
                             sendLog(dtoa(pidSpeed0.Kp));
@@ -394,8 +410,8 @@ void CheckMessages(){
                             //sendLog(" / 1000\n");
                             break;
                         case CODE_VAR_I_SPEED_L:
-                            value = ((uint32_t)RxDMABuffer[iArg3] << 24) + ((uint32_t)RxDMABuffer[iArg4] << 16) + ((uint32_t)RxDMABuffer[iArg5] << 8) + RxDMABuffer[iArg6];
-                            pidSpeed0.Ki = (double)value / COEF_SCALE_PID;
+                            value = ((uint32_t) RxDMABuffer[iArg3] << 24) + ((uint32_t) RxDMABuffer[iArg4] << 16) + ((uint32_t) RxDMABuffer[iArg5] << 8) + RxDMABuffer[iArg6];
+                            pidSpeed0.Ki = (double) value / COEF_SCALE_PID;
                             sendLog("Changed I1 : speed left to ");
                             //sendLog(itoa((int)(pidSpeedLeft.Ki*COEF_SCALE_PID)));
                             sendLog(dtoa(pidSpeed0.Ki));
@@ -403,8 +419,8 @@ void CheckMessages(){
                             //sendLog(" / 1000\n");
                             break;
                         case CODE_VAR_D_SPEED_L:
-                            value = ((uint32_t)RxDMABuffer[iArg3] << 24) + ((uint32_t)RxDMABuffer[iArg4] << 16) + ((uint32_t)RxDMABuffer[iArg5] << 8) + RxDMABuffer[iArg6];
-                            pidSpeed0.Kd = (double)value / COEF_SCALE_PID;
+                            value = ((uint32_t) RxDMABuffer[iArg3] << 24) + ((uint32_t) RxDMABuffer[iArg4] << 16) + ((uint32_t) RxDMABuffer[iArg5] << 8) + RxDMABuffer[iArg6];
+                            pidSpeed0.Kd = (double) value / COEF_SCALE_PID;
                             sendLog("Changed D1 : speed left to ");
                             //sendLog(itoa((int)(pidSpeedLeft.Kd*1000)));
                             sendLog(dtoa(pidSpeed0.Kd));
@@ -412,62 +428,62 @@ void CheckMessages(){
                             //sendLog(" / 1000\n");
                             break;
                         case CODE_VAR_P_SPEED_R:
-                            value = ((uint32_t)RxDMABuffer[iArg3] << 24) + ((uint32_t)RxDMABuffer[iArg4] << 16) + ((uint32_t)RxDMABuffer[iArg5] << 8) + RxDMABuffer[iArg6];
-                            pidSpeed1.Kp = (double)value / COEF_SCALE_PID;
+                            value = ((uint32_t) RxDMABuffer[iArg3] << 24) + ((uint32_t) RxDMABuffer[iArg4] << 16) + ((uint32_t) RxDMABuffer[iArg5] << 8) + RxDMABuffer[iArg6];
+                            pidSpeed1.Kp = (double) value / COEF_SCALE_PID;
                             sendLog("Changed P2 : speed right to ");
                             sendLog(dtoa(pidSpeed1.Kp));
                             sendLog("\n");
                             break;
                         case CODE_VAR_I_SPEED_R:
-                            value = ((uint32_t)RxDMABuffer[iArg3] << 24) + ((uint32_t)RxDMABuffer[iArg4] << 16) + ((uint32_t)RxDMABuffer[iArg5] << 8) + RxDMABuffer[iArg6];
-                            pidSpeed1.Ki = (double)value / COEF_SCALE_PID;
+                            value = ((uint32_t) RxDMABuffer[iArg3] << 24) + ((uint32_t) RxDMABuffer[iArg4] << 16) + ((uint32_t) RxDMABuffer[iArg5] << 8) + RxDMABuffer[iArg6];
+                            pidSpeed1.Ki = (double) value / COEF_SCALE_PID;
                             sendLog("Changed I2 : speed right to ");
                             sendLog(dtoa(pidSpeed1.Ki));
                             sendLog("\n");
                             break;
                         case CODE_VAR_D_SPEED_R:
-                            value = ((uint32_t)RxDMABuffer[iArg3] << 24) + ((uint32_t)RxDMABuffer[iArg4] << 16) + ((uint32_t)RxDMABuffer[iArg5] << 8) + RxDMABuffer[iArg6];
-                            pidSpeed1.Kd = (double)value / COEF_SCALE_PID;
+                            value = ((uint32_t) RxDMABuffer[iArg3] << 24) + ((uint32_t) RxDMABuffer[iArg4] << 16) + ((uint32_t) RxDMABuffer[iArg5] << 8) + RxDMABuffer[iArg6];
+                            pidSpeed1.Kd = (double) value / COEF_SCALE_PID;
                             sendLog("Changed D2 : speed right to ");
                             sendLog(dtoa(pidSpeed1.Kd));
                             sendLog("\n");
                             break;
                         case CODE_VAR_P_DISTANCE:
-                            value = ((uint32_t)RxDMABuffer[iArg3] << 24) + ((uint32_t)RxDMABuffer[iArg4] << 16) + ((uint32_t)RxDMABuffer[iArg5] << 8) + RxDMABuffer[iArg6];
-                            pidSpeed2.Kp = (double)value / COEF_SCALE_PID;
+                            value = ((uint32_t) RxDMABuffer[iArg3] << 24) + ((uint32_t) RxDMABuffer[iArg4] << 16) + ((uint32_t) RxDMABuffer[iArg5] << 8) + RxDMABuffer[iArg6];
+                            pidSpeed2.Kp = (double) value / COEF_SCALE_PID;
                             break;
                         case CODE_VAR_I_DISTANCE:
-                            value = ((uint32_t)RxDMABuffer[iArg3] << 24) + ((uint32_t)RxDMABuffer[iArg4] << 16) + ((uint32_t)RxDMABuffer[iArg5] << 8) + RxDMABuffer[iArg6];
-                            pidSpeed2.Ki = (double)value / COEF_SCALE_PID;
+                            value = ((uint32_t) RxDMABuffer[iArg3] << 24) + ((uint32_t) RxDMABuffer[iArg4] << 16) + ((uint32_t) RxDMABuffer[iArg5] << 8) + RxDMABuffer[iArg6];
+                            pidSpeed2.Ki = (double) value / COEF_SCALE_PID;
                             break;
                         case CODE_VAR_D_DISTANCE:
-                            value = ((uint32_t)RxDMABuffer[iArg3] << 24) + ((uint32_t)RxDMABuffer[iArg4] << 16) + ((uint32_t)RxDMABuffer[iArg5] << 8) + RxDMABuffer[iArg6];
-                            pidSpeed2.Kd = (double)value / COEF_SCALE_PID;
+                            value = ((uint32_t) RxDMABuffer[iArg3] << 24) + ((uint32_t) RxDMABuffer[iArg4] << 16) + ((uint32_t) RxDMABuffer[iArg5] << 8) + RxDMABuffer[iArg6];
+                            pidSpeed2.Kd = (double) value / COEF_SCALE_PID;
                             break;
                         case CODE_VAR_P_ANGLE:
-                            value = ((uint32_t)RxDMABuffer[iArg3] << 24) + ((uint32_t)RxDMABuffer[iArg4] << 16) + ((uint32_t)RxDMABuffer[iArg5] << 8) + RxDMABuffer[iArg6];
-                            pidAngle.Kp = (double)value / COEF_SCALE_PID;
+                            value = ((uint32_t) RxDMABuffer[iArg3] << 24) + ((uint32_t) RxDMABuffer[iArg4] << 16) + ((uint32_t) RxDMABuffer[iArg5] << 8) + RxDMABuffer[iArg6];
+                            pidAngle.Kp = (double) value / COEF_SCALE_PID;
                             break;
                         case CODE_VAR_I_ANGLE:
-                            value = ((uint32_t)RxDMABuffer[iArg3] << 24) + ((uint32_t)RxDMABuffer[iArg4] << 16) + ((uint32_t)RxDMABuffer[iArg5] << 8) + RxDMABuffer[iArg6];
-                            pidAngle.Ki = (double)value / COEF_SCALE_PID;
+                            value = ((uint32_t) RxDMABuffer[iArg3] << 24) + ((uint32_t) RxDMABuffer[iArg4] << 16) + ((uint32_t) RxDMABuffer[iArg5] << 8) + RxDMABuffer[iArg6];
+                            pidAngle.Ki = (double) value / COEF_SCALE_PID;
                             break;
                         case CODE_VAR_D_ANGLE:
-                            value = ((uint32_t)RxDMABuffer[iArg3] << 24) + ((uint32_t)RxDMABuffer[iArg4] << 16) + ((uint32_t)RxDMABuffer[iArg5] << 8) + RxDMABuffer[iArg6];
-                            pidAngle.Kd = (double)value / COEF_SCALE_PID;
+                            value = ((uint32_t) RxDMABuffer[iArg3] << 24) + ((uint32_t) RxDMABuffer[iArg4] << 16) + ((uint32_t) RxDMABuffer[iArg5] << 8) + RxDMABuffer[iArg6];
+                            pidAngle.Kd = (double) value / COEF_SCALE_PID;
                             break;
                         case CODE_VAR_COEF_DISSYMETRY:
-                            value = ((uint32_t)RxDMABuffer[iArg3] << 24) + ((uint32_t)RxDMABuffer[iArg4] << 16) + ((uint32_t)RxDMABuffer[iArg5] << 8) + RxDMABuffer[iArg6];
-                            coef_dissymmetry = (long double)value / COEF_SCALE_COEF_DISSYMETRY;
+                            value = ((uint32_t) RxDMABuffer[iArg3] << 24) + ((uint32_t) RxDMABuffer[iArg4] << 16) + ((uint32_t) RxDMABuffer[iArg5] << 8) + RxDMABuffer[iArg6];
+                            coef_dissymmetry = (long double) value / COEF_SCALE_COEF_DISSYMETRY;
                             sendLog("Coef Dissymetry changed to : ");
-                            sendLog(dtoa((double)coef_dissymmetry));
+                            sendLog(dtoa((double) coef_dissymmetry));
                             sendLog("\n");
                             break;
                         case CODE_VAR_MM_PER_TICKS:
-                            value = ((uint32_t)RxDMABuffer[iArg3] << 24) + ((uint32_t)RxDMABuffer[iArg4] << 16) + ((uint32_t)RxDMABuffer[iArg5] << 8) + RxDMABuffer[iArg6];
-                            mm_per_ticks = (long double)value / COEF_SCALE_MM_PER_TICKS;
+                            value = ((uint32_t) RxDMABuffer[iArg3] << 24) + ((uint32_t) RxDMABuffer[iArg4] << 16) + ((uint32_t) RxDMABuffer[iArg5] << 8) + RxDMABuffer[iArg6];
+                            mm_per_ticks = (long double) value / COEF_SCALE_MM_PER_TICKS;
                             sendLog("mm per ticks changed to : ");
-                            sendLog(dtoa((double)mm_per_ticks));
+                            sendLog(dtoa((double) mm_per_ticks));
                             sendLog("\n");
                             /*funAngularSpeed = (double)(value/1000);
                             sendLog("funSpeed changed to : ");
@@ -475,10 +491,10 @@ void CheckMessages(){
                             sendLog("\n");*/
                             break;
                         case CODE_VAR_DISTANCE_BETWEEN_ENCODER_WHEELS:
-                            value = ((uint32_t)RxDMABuffer[iArg3] << 24) + ((uint32_t)RxDMABuffer[iArg4] << 16) + ((uint32_t)RxDMABuffer[iArg5] << 8) + RxDMABuffer[iArg6];
-                            distance_between_encoder_wheels = (long double)value / COEF_SCALE_DISTANCE_BETWEEN_ENCODER_WHEELS;
+                            value = ((uint32_t) RxDMABuffer[iArg3] << 24) + ((uint32_t) RxDMABuffer[iArg4] << 16) + ((uint32_t) RxDMABuffer[iArg5] << 8) + RxDMABuffer[iArg6];
+                            distance_between_encoder_wheels = (long double) value / COEF_SCALE_DISTANCE_BETWEEN_ENCODER_WHEELS;
                             sendLog("Distance between encoder wheels changed to : ");
-                            sendLog(dtoa((double)distance_between_encoder_wheels));
+                            sendLog(dtoa((double) distance_between_encoder_wheels));
                             sendLog("\n");
                             /*funAngularAcc = (double)(value / COEF_SCALE_DISTANCE_BETWEEN_ENCODER_WHEELS);
                             sendLog("funAcc changed to : ");
@@ -486,11 +502,13 @@ void CheckMessages(){
                             sendLog("\n");*/
                             break;
                     }
-                }
+                }// </editor-fold>
+                // <editor-fold defaultstate="collapsed" desc="64bits">
                 else if (type == VAR_64b) {
-                    switch (var){
-                        case CODE_VAR_X_LD:{
-                            uint8_t *ptr = (uint8_t*)&x;
+                    switch (var) {
+                        case CODE_VAR_X_LD:
+                        {
+                            uint8_t *ptr = (uint8_t*) & x;
                             ptr[0] = RxDMABuffer[iArg3];
                             ptr[1] = RxDMABuffer[iArg4];
                             ptr[2] = RxDMABuffer[iArg5];
@@ -499,13 +517,14 @@ void CheckMessages(){
                             ptr[5] = RxDMABuffer[iArg8];
                             ptr[6] = RxDMABuffer[iArg9];
                             ptr[7] = RxDMABuffer[iArg10];
-                            sendLongDouble(CODE_VAR_X_LD,x);
+                            sendLongDouble(CODE_VAR_X_LD, x);
                             xc = x;
                             xf = x;
                             break;
                         }
-                        case CODE_VAR_Y_LD:{
-                            uint8_t *ptr = (uint8_t*)&y;
+                        case CODE_VAR_Y_LD:
+                        {
+                            uint8_t *ptr = (uint8_t*) & y;
                             ptr[0] = RxDMABuffer[iArg3];
                             ptr[1] = RxDMABuffer[iArg4];
                             ptr[2] = RxDMABuffer[iArg5];
@@ -514,13 +533,14 @@ void CheckMessages(){
                             ptr[5] = RxDMABuffer[iArg8];
                             ptr[6] = RxDMABuffer[iArg9];
                             ptr[7] = RxDMABuffer[iArg10];
-                            sendLongDouble(CODE_VAR_Y_LD,y);
+                            sendLongDouble(CODE_VAR_Y_LD, y);
                             yc = y;
                             yf = y;
                             break;
                         }
-                        case CODE_VAR_T_LD:{
-                            uint8_t *ptr = (uint8_t*)&theta;
+                        case CODE_VAR_T_LD:
+                        {
+                            uint8_t *ptr = (uint8_t*) & theta;
                             ptr[0] = RxDMABuffer[iArg3];
                             ptr[1] = RxDMABuffer[iArg4];
                             ptr[2] = RxDMABuffer[iArg5];
@@ -529,13 +549,14 @@ void CheckMessages(){
                             ptr[5] = RxDMABuffer[iArg8];
                             ptr[6] = RxDMABuffer[iArg9];
                             ptr[7] = RxDMABuffer[iArg10];
-                            sendLongDouble(CODE_VAR_X_LD,theta);
+                            sendLongDouble(CODE_VAR_X_LD, theta);
                             thetac = theta;
                             tf = theta;
                             break;
                         }
-                        case CODE_VAR_COEF_DISSYMETRY_LD:{
-                            uint8_t *ptr = (uint8_t*)&coef_dissymmetry;
+                        case CODE_VAR_COEF_DISSYMETRY_LD:
+                        {
+                            uint8_t *ptr = (uint8_t*) & coef_dissymmetry;
                             ptr[0] = RxDMABuffer[iArg3];
                             ptr[1] = RxDMABuffer[iArg4];
                             ptr[2] = RxDMABuffer[iArg5];
@@ -544,11 +565,12 @@ void CheckMessages(){
                             ptr[5] = RxDMABuffer[iArg8];
                             ptr[6] = RxDMABuffer[iArg9];
                             ptr[7] = RxDMABuffer[iArg10];
-                            sendLongDouble(CODE_VAR_COEF_DISSYMETRY_LD,coef_dissymmetry);
+                            sendLongDouble(CODE_VAR_COEF_DISSYMETRY_LD, coef_dissymmetry);
                             break;
                         }
-                        case CODE_VAR_MM_PER_TICKS_LD:{
-                            uint8_t *ptr = (uint8_t*)&mm_per_ticks;
+                        case CODE_VAR_MM_PER_TICKS_LD:
+                        {
+                            uint8_t *ptr = (uint8_t*) & mm_per_ticks;
                             ptr[0] = RxDMABuffer[iArg3];
                             ptr[1] = RxDMABuffer[iArg4];
                             ptr[2] = RxDMABuffer[iArg5];
@@ -557,11 +579,12 @@ void CheckMessages(){
                             ptr[5] = RxDMABuffer[iArg8];
                             ptr[6] = RxDMABuffer[iArg9];
                             ptr[7] = RxDMABuffer[iArg10];
-                            sendLongDouble(CODE_VAR_MM_PER_TICKS_LD,mm_per_ticks);
+                            sendLongDouble(CODE_VAR_MM_PER_TICKS_LD, mm_per_ticks);
                             break;
                         }
-                        case CODE_VAR_RAD_PER_TICKS_LD:{
-                            uint8_t *ptr = (uint8_t*)&rad_per_ticks;
+                        case CODE_VAR_RAD_PER_TICKS_LD:
+                        {
+                            uint8_t *ptr = (uint8_t*) & rad_per_ticks;
                             ptr[0] = RxDMABuffer[iArg3];
                             ptr[1] = RxDMABuffer[iArg4];
                             ptr[2] = RxDMABuffer[iArg5];
@@ -570,66 +593,122 @@ void CheckMessages(){
                             ptr[5] = RxDMABuffer[iArg8];
                             ptr[6] = RxDMABuffer[iArg9];
                             ptr[7] = RxDMABuffer[iArg10];
-                            sendLongDouble(CODE_VAR_RAD_PER_TICKS_LD,rad_per_ticks);
+                            sendLongDouble(CODE_VAR_RAD_PER_TICKS_LD, rad_per_ticks);
                             break;
                         }
                     }
                     break;
-                }
+                }// </editor-fold>
+                // <editor-fold defaultstate="collapsed" desc="long double 64bits">
                 else if (type == VAR_LD_64b) {
                     uint8_t *ptr = NULL;
                     uint8_t existing_var = 1;
-                    switch (var){
+                    switch (var) {
+                        // <editor-fold defaultstate="collapsed" desc="position & setpoint">
+                        case CODE_VAR_X_LD:
+                            ptr = (uint8_t*) &x;
+                            break;
+                        case CODE_VAR_Y_LD:
+                            ptr = (uint8_t*) &y;
+                            break;
+                        case CODE_VAR_T_LD:
+                            ptr = (uint8_t*) &theta;
+                            break;
+                            
+                        case CODE_VAR_XC_LD:
+                            ptr = (uint8_t*) &xc;
+                            break;
+                        case CODE_VAR_YC_LD:
+                            ptr = (uint8_t*) &yc;
+                            break;
+                        case CODE_VAR_TC_LD:
+                            ptr = (uint8_t*) &thetac;
+                            break;
+                            
+                        case CODE_VAR_XF_LD:
+                            ptr = (uint8_t*) &xf;
+                            break;
+                        case CODE_VAR_YF_LD:
+                            ptr = (uint8_t*) &yf;
+                            break;
+                        case CODE_VAR_TF_LD:
+                            ptr = (uint8_t*) &tf;
+                            break;// </editor-fold>
+
+                        // <editor-fold defaultstate="collapsed" desc="Trajectory generation">
+                        case CODE_VAR_TRAJ_LIN_SPEED_LD:
+                            ptr = (uint8_t*) &linSpeed;
+                            break;
+                        case CODE_VAR_TRAJ_LIN_ACC_LD:
+                            ptr = (uint8_t*) &linAcc;
+                            break;
+                        case CODE_VAR_TRAJ_ROT_SPEED_LD:
+                            ptr = (uint8_t*) &rotSpeed;
+                            break;
+                        case CODE_VAR_TRAJ_ROT_ACC_LD:
+                            ptr = (uint8_t*) &rotAcc;
+                            break; // </editor-fold>
+                        // <editor-fold defaultstate="collapsed" desc="Odometry">
+                        case CODE_VAR_TICKS_PER_TURN_LD:
+                            ptr = (uint8_t*) &ticksPerTurn;
+                            break;
+                        case CODE_VAR_WHEEL_DIAMETER_LD:
+                            ptr = (uint8_t*) & wheelDiameter;
+                            break;
+                        case CODE_VAR_DISTANCE_CENTER_TO_WHEEL_LD:
+                            ptr = (uint8_t*) &distanceCenterToWheel;
+                            break; // </editor-fold>
+                        // <editor-fold defaultstate="collapsed" desc="PID">
                         case CODE_VAR_P_SPEED_0_LD:
-                            ptr = (uint8_t*)&pidSpeed0.Kp;
+                            ptr = (uint8_t*) &pidSpeed0.Kp;
                             break;
                         case CODE_VAR_I_SPEED_0_LD:
-                            ptr = (uint8_t*)&pidSpeed0.Ki;
+                            ptr = (uint8_t*) &pidSpeed0.Ki;
                             break;
                         case CODE_VAR_D_SPEED_0_LD:
-                            ptr = (uint8_t*)&pidSpeed0.Kd;
+                            ptr = (uint8_t*) &pidSpeed0.Kd;
                             break;
                         case CODE_VAR_P_SPEED_1_LD:
-                            ptr = (uint8_t*)&pidSpeed1.Kp;
+                            ptr = (uint8_t*) &pidSpeed1.Kp;
                             break;
                         case CODE_VAR_I_SPEED_1_LD:
-                            ptr = (uint8_t*)&pidSpeed1.Ki;
+                            ptr = (uint8_t*) &pidSpeed1.Ki;
                             break;
                         case CODE_VAR_D_SPEED_1_LD:
-                            ptr = (uint8_t*)&pidSpeed1.Kd;
+                            ptr = (uint8_t*) &pidSpeed1.Kd;
                             break;
                         case CODE_VAR_P_SPEED_2_LD:
-                            ptr = (uint8_t*)&pidSpeed2.Kp;
+                            ptr = (uint8_t*) &pidSpeed2.Kp;
                             break;
                         case CODE_VAR_I_SPEED_2_LD:
-                            ptr = (uint8_t*)&pidSpeed2.Ki;
+                            ptr = (uint8_t*) &pidSpeed2.Ki;
                             break;
                         case CODE_VAR_D_SPEED_2_LD:
-                            ptr = (uint8_t*)&pidSpeed2.Kd;
+                            ptr = (uint8_t*) &pidSpeed2.Kd;
                             break;
                         case CODE_VAR_P_DISTANCE_LD:
-                            ptr = (uint8_t*)&pidDistance.Kp;
+                            ptr = (uint8_t*) &pidDistance.Kp;
                             break;
                         case CODE_VAR_I_DISTANCE_LD:
-                            ptr = (uint8_t*)&pidDistance.Ki;
+                            ptr = (uint8_t*) &pidDistance.Ki;
                             break;
                         case CODE_VAR_D_DISTANCE_LD:
-                            ptr = (uint8_t*)&pidDistance.Kd;
+                            ptr = (uint8_t*) &pidDistance.Kd;
                             break;
                         case CODE_VAR_P_ANGLE_LD:
-                            ptr = (uint8_t*)&pidAngle.Kp;
+                            ptr = (uint8_t*) &pidAngle.Kp;
                             break;
                         case CODE_VAR_I_ANGLE_LD:
-                            ptr = (uint8_t*)&pidAngle.Ki;
+                            ptr = (uint8_t*) &pidAngle.Ki;
                             break;
                         case CODE_VAR_D_ANGLE_LD:
-                            ptr = (uint8_t*)&pidAngle.Kd;
-                            break;
+                            ptr = (uint8_t*) &pidAngle.Kd;
+                            break; // </editor-fold>
                         default:
                             existing_var = 0;
                             break;
                     }
-                    if(existing_var){
+                    if (existing_var) {
                         ptr[0] = RxDMABuffer[iArg3];
                         ptr[1] = RxDMABuffer[iArg4];
                         ptr[2] = RxDMABuffer[iArg5];
@@ -640,7 +719,8 @@ void CheckMessages(){
                         ptr[7] = RxDMABuffer[iArg10];
                     }
                     break;
-                }
+                }// </editor-fold>
+
             } // </editor-fold>
 
                 // <editor-fold defaultstate="collapsed" desc="Get">
@@ -654,6 +734,9 @@ void CheckMessages(){
                 switch (varCode) {
                     case VAR_STATE:
                         //sendLog(itoa(state));
+                        break;
+                    case CODE_VAR_ARRIVED:
+                        sendVar8(CODE_VAR_ARRIVED,arrived);
                         break;
                     case CODE_VAR_BAT:{
                         double vbat = VBAT;
@@ -1012,6 +1095,19 @@ void sendAllPIDLongDouble(){
     sendLongDouble(CODE_VAR_P_ANGLE_LD,pidAngle.Kp);
     sendLongDouble(CODE_VAR_I_ANGLE_LD,pidAngle.Ki);
     sendLongDouble(CODE_VAR_D_ANGLE_LD,pidAngle.Kd);
+}
+void sendVar8(uint8_t varCode, uint8_t var){
+    uint8_t  i;
+	uint8_t buffer[TX_SIZE_VAR_8B + 1];
+    buffer[0] = TX_SIZE_VAR_8B;
+    buffer[1] = TX_CODE_VAR;
+    buffer[2] = varCode;
+    buffer[3] = var;
+    buffer[4] = 0;
+    for(i = 0; i < TX_SIZE_VAR_32B; i++){
+        buffer[4] += buffer[i];	//checksum
+    }
+	send(buffer,TX_SIZE_VAR_32B + 1);
 }
 void sendVar32(uint8_t varCode, uint32_t var){
     uint8_t  i;

@@ -684,6 +684,9 @@ window.onload = function () {
 		$("#Button_ClearChart").click(function(event){
 			clearChart();
 		});
+		$("#ButtonClearChartsPID").click(function(event){
+			clearChartPID();
+		});
 		$("#button_go").click(function(event){
 			var xDest = Number(document.getElementById("inputText_destX").value);
 			var yDest = Number(document.getElementById("inputText_destY").value);
@@ -1103,6 +1106,47 @@ window.onload = function () {
 			dps7.length = 0;
 			dps8.length = 0;
 			dps9.length = 0;
+		}
+		function clearChartPID() {
+			dps11.length = 0;
+			dps12.length = 0;
+			dps13.length = 0;
+			dps14.length = 0;
+			dps15.length = 0;
+			dps16.length = 0;
+			dps17.length = 0;
+			dps18.length = 0;
+			dps19.length = 0;
+			
+			dps21.length = 0;
+			dps22.length = 0;
+			dps23.length = 0;
+			dps24.length = 0;
+			dps25.length = 0;
+			dps26.length = 0;
+			dps27.length = 0;
+			dps28.length = 0;
+			dps29.length = 0;
+			
+			dps31.length = 0;
+			dps32.length = 0;
+			dps33.length = 0;
+			dps34.length = 0;
+			dps35.length = 0;
+			dps36.length = 0;
+			dps37.length = 0;
+			dps38.length = 0;
+			dps39.length = 0;
+			
+			dps41.length = 0;
+			dps42.length = 0;
+			dps43.length = 0;
+			dps44.length = 0;
+			dps45.length = 0;
+			dps46.length = 0;
+			dps47.length = 0;
+			dps48.length = 0;
+			dps49.length = 0;
 		}
 		function download(data, filename, type) {
 			var file = new Blob([data], {type: type});

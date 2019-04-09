@@ -69,7 +69,7 @@ volatile PID pidSpeed0, pidSpeed1, pidSpeed2;
 int state = 0;
 int R,L;
 
-volatile char arrived;
+//volatile char arrived;
 volatile char arrived_2;
 
 extern volatile char   US_ON[NB_US];
@@ -149,6 +149,11 @@ volatile double funAcc = 1000;
 volatile double funAngularSpeed = 10;
 volatile double funAngularAcc = 1;
 
+volatile long double linSpeed = 0;  //mm/s
+volatile long double linAcc = 0;    //mm/s^2
+volatile long double rotSpeed = 0;  //rad/s
+volatile long double rotAcc = 0;    //rad/s^2
+
 int sens = 0;
 
 
@@ -156,6 +161,9 @@ volatile long double kahanErrorX;
 volatile long double kahanErrorY;
 volatile long double kahanErrorT;
 
+volatile uint8_t arrived = 1;
+
+extern volatile long double alphaDebug;
 
 int main(){
     initClock(); //Clock 140 MHz
@@ -175,23 +183,11 @@ int main(){
     //initSPI();
     
     
-    /*
-    LATBbits.LATB10 = 1;    //PWM_ASS_0
-    LATGbits.LATG0 = 1;     //SENS_ASS_0
-    
-    LATBbits.LATB11 = 1;    //PWM_ASS_1
-    LATGbits.LATG1 = 1;     //SENS_ASS_1
-    
-    LATBbits.LATB13 = 1;    //PWM_ASS_2
-    LATGbits.LATG12 = 1;     //SENS_ASS_2
-    */
-    
-    
     //uint16_t w = 0;
     //uint16_t w2 = 0;
     
     initPWM();
-    int iLed = 0;
+    //int iLed = 0;
     x = 1000;
     y = 1500;
     xc = x;
@@ -211,27 +207,32 @@ int main(){
     int16_t saveTick0 = tick0;
     int16_t saveTick1 = tick1;
     int16_t saveTick2 = tick2;
-    /*while(1){
-        delay_ms(1000);
-        sendLog("hello\n");
-    }*/
-    //IEC0bits.T1IE = 1;
-    /*setSetPoint(&pidSpeed0,1);
-    setSetPoint(&pidSpeed1,1);
-    setSetPoint(&pidSpeed2,1);*/
-    /*pidSpeed0.Kp = 0;
-    pidSpeed1.Kp = 0;
-    pidSpeed2.Kp = 0;
-    pidSpeed0.Ki = 0;
-    pidSpeed1.Ki = 0;
-    pidSpeed2.Ki = 0;*/
     
-    /*
-    setSetPoint(&pidSpeed0,0);
-    setSetPoint(&pidSpeed1,0);
-    setSetPoint(&pidSpeed2,0);
-     */
     stop = 1;
+    while(1){
+        CheckMessages();
+        pidAngle.setPoint = thetac;
+        sendPos();
+        if(newPosReceived){
+                
+                statePathGeneration = 42;
+                delay_ms(100);
+                newPosReceived = 0;
+                
+                modif_straightPath(receivedX,receivedY,0,linSpeed,linAcc);
+        }
+        delay_ms(50);
+        /*plot(11,(uint32_t)((int32_t)(xc)));
+        plot(12,(uint32_t)((int32_t)(x)));
+        plot(21,(uint32_t)((int32_t)(yc)));
+        plot(22,(uint32_t)((int32_t)(y)));*/
+        //plot(1,(uint32_t)((int32_t)(pidAngle.setPoint*1800/PI)));
+        plot(2,(uint32_t)((int32_t)(theta*1800/PI)));
+        //plot(3,(uint32_t)((int32_t)(alphaDebug*1800/PI)));
+        plot(4,(uint32_t)((int32_t)(PWM_0)));
+        plot(5,(uint32_t)((int32_t)(PWM_1)));
+        plot(6,(uint32_t)((int32_t)(PWM_2)));
+    }
     while(1){
         /*setSetPoint(&pidSpeed0,0);
         setSetPoint(&pidSpeed1,0);
@@ -967,7 +968,8 @@ void modif_straightPath(double arg_cx, double arg_cy, double arg_ct, double arg_
 	speed = 0;
 	precSpeed = 0;
 	dist = 0;
-
+    xf = arg_cx;
+    yf = arg_cy;
     statePathGeneration = 1;
     stateTrap = 1;
 }

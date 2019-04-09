@@ -41,11 +41,34 @@ int main()
 	char *ptrC = (char*)ptrF;
 	std::cout << (int)ptrC[0] << "/" << (int)ptrC[1] << "/" << (int)ptrC[2] << "/" << (int)ptrC[3] << "/" << std::endl;*/
     getchar();
+	
+	
 	dspic.setVar8(CODE_VAR_VERBOSE,1);
 	puts("verbose set to 1");
 	dspic.getVar(CODE_VAR_BAT);
+	dspic.setVarDouble64b(CODE_VAR_P_SPEED_0_LD,3);
+	dspic.setVarDouble64b(CODE_VAR_P_SPEED_1_LD,3);
+	dspic.setVarDouble64b(CODE_VAR_P_SPEED_2_LD,3);
+	
+	dspic.setVarDouble64b(CODE_VAR_I_SPEED_0_LD,0);
+	dspic.setVarDouble64b(CODE_VAR_I_SPEED_1_LD,0);
+	dspic.setVarDouble64b(CODE_VAR_I_SPEED_2_LD,0);
+	
+	dspic.setVarDouble64b(CODE_VAR_P_DISTANCE_LD,0.02);
+	//dspic.setVarDouble64b(CODE_VAR_P_DISTANCE_LD,0);
+	
+	dspic.setVarDouble64b(CODE_VAR_P_ANGLE_LD,0.05);
+	
+	dspic.setVarDouble64b(CODE_VAR_TRAJ_LIN_SPEED_LD,500);
+	dspic.setVarDouble64b(CODE_VAR_TRAJ_LIN_ACC_LD,3000);
 	char c = 0;
 	char started = 0;
+	
+	/*dspic.setVarDouble64b(CODE_VAR_XC_LD,0);
+	dspic.setVarDouble64b(CODE_VAR_YC_LD,0);
+	dspic.setVarDouble64b(CODE_VAR_XF_LD,0);
+	dspic.setVarDouble64b(CODE_VAR_YF_LD,0);*/
+	
 	while(c != 's'){
 		puts("Press 's' to stop or any other button to start/stop the robot");
 		c = getchar();
@@ -53,13 +76,29 @@ int main()
 			if(!started){
 				started = 1;
 				dspic.start();
+				//dspic.setVarDouble64b(CODE_VAR_TC_LD,3.14159/4);
 			}
 			else{
 				started = 0;
 				dspic.stop();
+				//dspic.setVarDouble64b(CODE_VAR_TC_LD,0);
 			}
 		}
 	}
+	/*double radius = 200;
+	dspic.setVarDouble64b(CODE_VAR_X_LD,1000+radius);
+	dspic.setVarDouble64b(CODE_VAR_Y_LD,1500);
+	for(double t = 0; t < 2*3.14159;t+=0.03){
+		double x = 1000 + radius * cos(t);
+		double y = 1500 + radius * sin(t);
+		dspic.setVarDouble64b(CODE_VAR_XC_LD,x);
+		dspic.setVarDouble64b(CODE_VAR_YC_LD,y);
+		dspic.setVarDouble64b(CODE_VAR_XF_LD,x);
+		dspic.setVarDouble64b(CODE_VAR_YF_LD,y);
+		delay(20);
+	}*/
+	
+	dspic.stop();
 	//dspic.start();
     //dspic.getVar(CODE_VAR_ODO);
     //dspic.initPos(1000,1500,0);
@@ -320,7 +359,7 @@ void *print(void *ptr) {
                                     for(int i = 0; i < 8; i++){
                                         ptrChar[i] = msg[3+i];
                                     }
-									std::cout << "P_speed0 = " << w->dspic->pidSpeed0.Kp << std::endl;
+									//std::cout << "P_speed0 = " << w->dspic->pidSpeed0.Kp << std::endl;
                                 }
 								break;
                             case CODE_VAR_I_SPEED_0_LD:
@@ -453,7 +492,7 @@ void *print(void *ptr) {
                                         ptrChar[i] = msg[3+i];
                                     }
 									w->dspic->isPIDUpdated = true;
-									std::cout << "Updated !" << std::endl;
+									//std::cout << "Updated !" << std::endl;
                                 }
 								break;
 								

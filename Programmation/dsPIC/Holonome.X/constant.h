@@ -130,7 +130,7 @@
 #define TX_CODE_PLOT    3
 
 #define TX_SIZE_VAR      //ça dépend
-#define TX_SIZE_VAR_8B   // ?
+#define TX_SIZE_VAR_8B  4
 #define TX_SIZE_VAR_16B 5
 #define TX_SIZE_VAR_32B 7
 #define TX_SIZE_VAR_DOUBLE 7
@@ -152,12 +152,14 @@
 #define CODE_VAR_Y          2
 #define CODE_VAR_T          3
 
-#define CODE_VAR_X_LD       6
+/*#define CODE_VAR_X_LD       6
 #define CODE_VAR_Y_LD       7
-#define CODE_VAR_T_LD       8
+#define CODE_VAR_T_LD       8*/
 
 #define CODE_VAR_RUPT       4
 #define CODE_VAR_VERBOSE    5
+
+#define CODE_VAR_ARRIVED    6
 
 #define CODE_VAR_ALLPID     9
 
@@ -202,6 +204,33 @@
 #define CODE_VAR_P_ANGLE_LD     54
 #define CODE_VAR_I_ANGLE_LD     55
 #define CODE_VAR_D_ANGLE_LD     56
+
+#define CODE_VAR_TRAJ_LIN_SPEED_LD  60
+#define CODE_VAR_TRAJ_LIN_ACC_LD    61
+
+#define CODE_VAR_TRAJ_ROT_SPEED_LD  62
+#define CODE_VAR_TRAJ_ROT_ACC_LD    63
+
+#define CODE_VAR_TICKS_PER_TURN_LD              70
+#define CODE_VAR_WHEEL_DIAMETER_LD              71
+#define CODE_VAR_DISTANCE_CENTER_TO_WHEEL_LD    72
+
+#define CODE_VAR_X_LD    80
+#define CODE_VAR_Y_LD    81
+#define CODE_VAR_T_LD    82
+
+#define CODE_VAR_XC_LD    83
+#define CODE_VAR_YC_LD    84
+#define CODE_VAR_TC_LD    85
+
+#define CODE_VAR_XF_LD    86
+#define CODE_VAR_YF_LD    87
+#define CODE_VAR_TF_LD    88
+
+/*
+extern volatile long double ticksPerTurn;
+extern volatile long double wheelDiameter;
+extern volatile long double distanceCenterToWheel;*/
 
 #define CODE_VAR_US     100 //attention range [100 ; 100 + NB_US - 1]
 
