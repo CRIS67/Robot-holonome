@@ -118,7 +118,7 @@ namespace Sockets
             int pending = recv(newClient, reinterpret_cast<char*>(&expectedSize), sizeof(expectedSize), 0); // gets the size of the message
             if ( pending <= 0 || pending != sizeof(unsigned short) )
             {
-                std::cout << "Error ! Problem with expected size of the message. Or waiting";
+                std::cout << "Error ! Problem with expected size of the message. Client disconnected";
                 continue;
             }
 
@@ -143,7 +143,7 @@ namespace Sockets
             for(int i=0; i<buffer.size(); i++)
             {	
             	if(buffer.at(i) != ';')
-            		std::cout << static_cast<int>(buffer.at(i));
+            		std::cout << static_cast<uint16_t>(buffer.at(i));
         		else 
         			std::cout << buffer.at(i); 
             }
