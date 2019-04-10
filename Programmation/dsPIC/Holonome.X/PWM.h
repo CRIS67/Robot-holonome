@@ -20,7 +20,7 @@ void initPWM4();
 void initPWM5();
 void initPWM6();
 
-void motor(uint8_t id, char value);
+void motor(uint8_t id, double value);
 void sendMotor0(double value);
 void sendMotor1(double value);
 void sendMotor2(double value);
