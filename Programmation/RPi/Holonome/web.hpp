@@ -14,6 +14,11 @@
 #include <math.h>
 #include <unistd.h>
 #include "dspic.hpp"
+
+#define DEBUG_PID	0
+
+#define COEF_SCALE_PID	1000000
+
 void* thread_HandleConnnection(void *threadid);
 std::string simulateResponse(double i);
 class Web

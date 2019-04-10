@@ -1,5 +1,5 @@
-test: web.o dspic.o mapGeneration.o dStarLite.o main.o  
-	g++ -o test web.o dspic.o mapGeneration.o dStarLite.o main.o -Wall -lwiringPi -pthread 
+holonome: web.o dspic.o mapGeneration.o dStarLite.o main.o  
+	g++ -o holonome web.o dspic.o mapGeneration.o dStarLite.o main.o -Wall -lwiringPi -pthread 
 
 web.o: web.cpp
 	g++ -o web.o -c web.cpp -Wall -lwiringPi -pthread 
@@ -15,6 +15,4 @@ dStarLite.o: dStarLite.cpp
 
 main.o: main.cpp web.hpp dspic.hpp mapGeneration.hpp dStarLite.hpp 
 	g++ -o main.o -c main.cpp -Wall -lwiringPi -pthread 
-
-
 
