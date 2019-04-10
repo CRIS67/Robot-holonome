@@ -1,10 +1,5 @@
-<<<<<<< HEAD
 *.o
-=======
-
 Programmation/dsPIC/Holonome.X/build/
-
 Programmation/dsPIC/Holonome.X/debug/
-
 Programmation/dsPIC/Holonome.X/dist/
->>>>>>> master
+
