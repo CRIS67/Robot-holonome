@@ -40,6 +40,7 @@ void *print(void *ptr);
 
 int main()
 {
+    /*Init variables & threads*/
 	DsPIC dspic;
     pthread_t thread_print;
 
@@ -49,7 +50,6 @@ int main()
     web.startThread();
 
     int rc;
-    std::cout << "main() : creating thread, " << std::endl;
     rc = pthread_create(&thread_print, NULL, print, &web);
 
     if (rc) {
@@ -57,54 +57,56 @@ int main()
     exit(-1);
     }
 
-    std::cout << "Press enter to continue" << std::endl; 
-    getchar();
-	
-	
-	dspic.setVar8(CODE_VAR_VERBOSE,1);
-	puts("verbose set to 1");
-
-    
-
-    std::cout << "Press enter to continue" << std::endl; 
-    getchar();
-	dspic.setVar8(CODE_VAR_VERBOSE,0);
-	puts("verbose set to 0");
-    
-	//std::cout << dspic.read() << std::endl;
-
-    std::cout << "Press enter to EXIT" << std::endl; 
-    getchar();
-
 	dspic.getVar(CODE_VAR_BAT);
-	dspic.setVarDouble64b(CODE_VAR_P_SPEED_0_LD,3);
-	dspic.setVarDouble64b(CODE_VAR_P_SPEED_1_LD,3);
-	dspic.setVarDouble64b(CODE_VAR_P_SPEED_2_LD,3);
-	
-	dspic.setVarDouble64b(CODE_VAR_I_SPEED_0_LD,0);
-	dspic.setVarDouble64b(CODE_VAR_I_SPEED_1_LD,0);
-	dspic.setVarDouble64b(CODE_VAR_I_SPEED_2_LD,0);
-	
-	//dspic.setVarDouble64b(CODE_VAR_P_DISTANCE_LD,0.02);
-	//dspic.setVarDouble64b(CODE_VAR_P_DISTANCE_LD,0);
-	dspic.setVarDouble64b(CODE_VAR_P_DISTANCE_LD,0.1);
-	
-	dspic.setVarDouble64b(CODE_VAR_P_ANGLE_LD,0.05);
-	
-	dspic.setVarDouble64b(CODE_VAR_TRAJ_LIN_SPEED_LD,400);
-	dspic.setVarDouble64b(CODE_VAR_TRAJ_LIN_ACC_LD,500);
-	
-	double wheelDiameter0 = 63.8;
-	double wheelDiameter1 = 63.8;
-	double wheelDiameter2 = wheelDiameter1 * 0.95;
-	
-	dspic.setVarDouble64b(CODE_VAR_WHEEL_DIAMETER0_LD,wheelDiameter0);
-	dspic.setVarDouble64b(CODE_VAR_WHEEL_DIAMETER1_LD,wheelDiameter1);
-	dspic.setVarDouble64b(CODE_VAR_WHEEL_DIAMETER2_LD,wheelDiameter2);
-	
+
+	dspic.initVarDspic();  //Init PID,odometry,acceleration,speed
+	dspic.initPos(1000,1500,0);    //initialize position & angle of the robot
 	char c = 0;
 	char started = 0;
 
+    puts("Robot initialized. Press enter to start...");
+    getchar();
+    
+    dspic.setVar8(CODE_VAR_VERBOSE,1);  //Allow the dspic to speak on UART channel
+    dspic.start();  //Start the motors
+
+    //go to a destination with verification
+    dspic.go(1500,1500,0,0);
+    dspic.arrived = 0;  //force arrived to 0
+    while(!dspic.arrived){
+        delay(50);  //wait before asking so the dspic can start the movement /  and don't SPAM the UART channel
+        dspic.getVar(CODE_VAR_ARRIVED); //send a request to update the arrived variable
+    }
+
+    /*To delete*/
+    /*char c2 = 0;
+    while(c != 's'){
+        puts("Press 's' to stop or any other button to start/stop the robot");
+        c = getchar();
+        if(c != 's'){
+            if(!started){
+                started = 1;
+                dspic.start();
+                while(c2 != 's'){
+                    c2 = getchar();
+                    dspic.getVar(CODE_VAR_ARRIVED);
+                    if(dspic.arrived){
+                        puts("arrived !");
+                    }
+                    else{
+                        puts("not arrived");
+                    }
+
+                }
+            }
+            else{
+                started = 0;
+                dspic.stop();
+                //dspic.setVarDouble64b(CODE_VAR_TC_LD,0);
+            }
+        }
+    }*/
+    exit(-1);
     /*=============DStarImplementation===================*/
     //dsPic initialization 
     dspic.start(); 
@@ -536,8 +538,9 @@ void *print(void *ptr) {
 									//std::cout << "Updated !" << std::endl;
                                 }
 								break;
-								
-								
+							case CODE_VAR_ARRIVED:
+                                w->dspic->arrived = msg[3];
+                                break;
                             default :
                                 std::cout << "Received wrong variable code from DsPIC : " << (int)msg[2] << std::endl;
                                 break;

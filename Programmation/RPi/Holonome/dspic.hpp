@@ -42,6 +42,8 @@
 
 #define CODE_VAR_VERBOSE    5
 
+#define CODE_VAR_ARRIVED    6
+
 /*#define CODE_VAR_X_LD       6
 #define CODE_VAR_Y_LD       7
 #define CODE_VAR_T_LD       8*/
@@ -161,6 +163,7 @@ class DsPIC
         DsPIC();
         virtual ~DsPIC();
 
+		void initVarDspic();
 		void servo(uint8_t id, uint16_t value);
 		void AX12(uint8_t id, uint16_t value);
 		void motor(uint8_t id, int8_t value);
@@ -196,6 +199,7 @@ class DsPIC
 		double coef_dissymetry = 0;
 		double mm_per_tick = 0;
 		double rad_per_tick = 0;
+		uint8_t arrived = 0;
     protected:
 		int fd;
     private:

@@ -182,14 +182,16 @@ int main(){
         pidAngle.setPoint = thetac;
         sendPos();
         if(newPosReceived){
-                
+                /*xf = receivedX;
+                yf = receivedY;
+                arrived = 0;
                 statePathGeneration = 42;
-                delay_ms(100);
+                delay_ms(100);*/
                 newPosReceived = 0;
                 
                 go(receivedX,receivedY,0,linSpeed,linAcc);
         }
-        delay_ms(50);
+        delay_ms(10);
     }
     return 0;
 }
