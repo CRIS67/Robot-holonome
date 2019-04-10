@@ -17,8 +17,8 @@
 #include "dStarLite.hpp"
 
 //DStarGlobal 
-int mapRows {10};  
-int mapColumns {10};  
+int mapRows {20};  
+int mapColumns {20};  
 float km {0}; 
 std::vector<std::vector<int>> mapVector;
  
@@ -72,7 +72,7 @@ int main()
 	puts("verbose set to 0");
     
 	//std::cout << dspic.read() << std::endl;
-    web.s = "hola ! \n";
+
     std::cout << "Press enter to EXIT" << std::endl; 
     getchar();
 
@@ -104,13 +104,14 @@ int main()
 	
 	char c = 0;
 	char started = 0;
+
     /*=============DStarImplementation===================*/
     //dsPic initialization 
     dspic.start(); 
 
     // Map Generation 
     generateMap(mapVector,mapRows,mapColumns); // generates empty map 
-    createRectangle(4, 4, 5, 5, mapVector); // creates a 5x5 obstacle rectangle  at (4,4) 
+    createRectangle(10, 10, 5, 5, mapVector); // creates a 5x5 obstacle rectangle  at (4,4) 
     printMap(mapRows, mapColumns, mapVector);
 
     //DStarLite first run
@@ -131,8 +132,10 @@ int main()
         startNode = bestNode(startNode, knownNodes); // we "move" the robot
         findPath(mapVector,knownNodes,startNode,goalNode); // prints the path in the terminal 
         
-        int xSetpoint = startNode.coord.first *30; 
-        int ySetpoint = startNode.coord.second *30; 
+        int xSetpoint = startNode.coord.first *30+1000; 
+        int ySetpoint = startNode.coord.second *30+1500; 
+
+
         dspic.go(xSetpoint, ySetpoint,0,0); // we move the robot to the next point
 
 
