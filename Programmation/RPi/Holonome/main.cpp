@@ -17,8 +17,8 @@
 #include "dStarLite.hpp"
 
 //DStarGlobal 
-int mapRows {20};  
-int mapColumns {20};  
+int mapRows {10};  
+int mapColumns {10};  
 float km {0}; 
 std::vector<std::vector<int>> mapVector;
  
@@ -69,52 +69,17 @@ int main()
     
     dspic.setVar8(CODE_VAR_VERBOSE,1);  //Allow the dspic to speak on UART channel
     dspic.start();  //Start the motors
-
-    //go to a destination with verification
-    dspic.go(1500,1500,0,0);
-    dspic.arrived = 0;  //force arrived to 0
-    while(!dspic.arrived){
-        delay(50);  //wait before asking so the dspic can start the movement /  and don't SPAM the UART channel
-        dspic.getVar(CODE_VAR_ARRIVED); //send a request to update the arrived variable
-    }
-
-    /*To delete*/
-    /*char c2 = 0;
-    while(c != 's'){
-        puts("Press 's' to stop or any other button to start/stop the robot");
-        c = getchar();
-        if(c != 's'){
-            if(!started){
-                started = 1;
-                dspic.start();
-                while(c2 != 's'){
-                    c2 = getchar();
-                    dspic.getVar(CODE_VAR_ARRIVED);
-                    if(dspic.arrived){
-                        puts("arrived !");
-                    }
-                    else{
-                        puts("not arrived");
-                    }
-
-                }
-            }
-            else{
-                started = 0;
-                dspic.stop();
-                //dspic.setVarDouble64b(CODE_VAR_TC_LD,0);
-            }
-        }
-    }*/
-    exit(-1);
+    std::cout << "dspic start" << std::endl; 
     /*=============DStarImplementation===================*/
     //dsPic initialization 
-    dspic.start(); 
 
     // Map Generation 
     generateMap(mapVector,mapRows,mapColumns); // generates empty map 
-    createRectangle(10, 10, 5, 5, mapVector); // creates a 5x5 obstacle rectangle  at (4,4) 
+    std::cout << "Map generated" << std::endl; 
+    std::cout << "x " << mapVector.size() << " y " << mapVector[0].size() << std::endl; 
+    createRectangle(4,4,5, 5, mapVector); // creates a 5x5 obstacle rectangle  at (4,4) 
     printMap(mapRows, mapColumns, mapVector);
+    
 
     //DStarLite first run
     Node lastNode = startNode;
@@ -123,6 +88,7 @@ int main()
     computeShortestPath(uList, knownNodes, startNode.coord, goalNode);
     startNode = knownNodes.at(startNode.coord); // we update the start node
     goalNode = knownNodes.at(goalNode.coord); // we update the goal node
+    std::cout << "Dstar first run" << std::endl; 
 
     while(startNode.coord != goalNode.coord){
 
@@ -134,11 +100,21 @@ int main()
         startNode = bestNode(startNode, knownNodes); // we "move" the robot
         findPath(mapVector,knownNodes,startNode,goalNode); // prints the path in the terminal 
         
-        int xSetpoint = startNode.coord.first *30+1000; 
-        int ySetpoint = startNode.coord.second *30+1500; 
+        int xSetpoint = startNode.coord.first *10+1000; 
+        int ySetpoint = startNode.coord.second *10+1500; 
 
+        dspic.setVarDouble64b(CODE_VAR_XC_LD,xSetpoint);
+        dspic.setVarDouble64b(CODE_VAR_YC_LD,ySetpoint);
+        dspic.setVarDouble64b(CODE_VAR_XF_LD,goalNode.coord.first);
+        dspic.setVarDouble64b(CODE_VAR_YF_LD,goalNode.coord.second);
 
-        dspic.go(xSetpoint, ySetpoint,0,0); // we move the robot to the next point
+        delay(100); 
+        // dspic.go(xSetpoint, ySetpoint,0,0); // we move the robot to the next point
+        // dspic.arrived = 0;  //force arrived to 0
+        // while(!dspic.arrived){
+        //     delay(50);  //wait before asking so the dspic can start the movement /  and don't SPAM the UART channel
+        //     dspic.getVar(CODE_VAR_ARRIVED); //send a request to update the arrived variable
+        // }
 
 
         // Debug 
