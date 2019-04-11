@@ -18,13 +18,13 @@
 #include "trajectoryHandle.hpp"
 
 //DStarGlobal 
-int mapRows {10};  
-int mapColumns {10};  
+int mapRows {15};  
+int mapColumns {15};  
 float km {0}; 
 std::vector<std::vector<int>> mapVector;
  
 Node startNode = {infinity,infinity,0,std::pair<int,int>(0,0)};
-Node goalNode = {infinity,0,0,std::pair<int,int>(9,9), false};
+Node goalNode = {infinity,0,0,std::pair<int,int>(14,14), false};
 
 priorityList uList; // priority List
 mappedNodes knownNodes; // node the robot can see
@@ -78,7 +78,11 @@ int main()
 
     // Map Generation 
     generateMap(mapVector,mapRows,mapColumns); // generates empty map 
-    createRectangle(4,4,5, 5, mapVector); // creates a 5x5 obstacle rectangle  at (4,4) 
+    //createRectangle(4,4,5, 5, mapVector); // creates a 5x5 obstacle rectangle  at (4,4) 
+    createRectangle(1,1,4,2,mapVector); 
+    createRectangle(3,3,4,2,mapVector); 
+    createRectangle(7,5,4,2,mapVector); 
+    createRectangle(13,7,4,2,mapVector); 
     printMap(mapRows, mapColumns, mapVector);
     
 
@@ -92,53 +96,15 @@ int main()
 
 
     std::vector<Node> completePath = getPath(mapVector, knownNodes, startNode, goalNode); // get the hole path 
-
-    //Debug 
-    /*
-    std::cout <<"===== COMPLETE PATH =====" << std::endl << std::endl; 
-
-    std::vector<std::vector<int>> tmpMap = mapVector; 
-    int x,y; 
-    for(uint i = 0; i< completePath.size(); i++){
-    x = completePath.at(i).coord.first;
-    y = completePath.at(i).coord.second;
-
-    tmpMap[x][y] = 2;
-    }
-
-    printMap(tmpMap.size(), tmpMap[0].size(), tmpMap);
-
-
-    std::cout << "Press enter to continue" << std::endl; 
-    getchar();
-    */
+    printPath(completePath, mapVector);
 
     std::vector<Node> simplifiedPath = pathTreatment(completePath);
     simplifiedPath.push_back(goalNode); // we need to add the last node manually :(
+    printPath(simplifiedPath,mapVector); 
 
-    //Debug
-    /*
-    std::cout <<"=====SIMPLIFIED PATH =====" << std::endl << std::endl; 
-
-    tmpMap = mapVector;
- 
-    for(uint i = 0; i< simplifiedPath.size(); i++){
-    x = simplifiedPath.at(i).coord.first;
-    y = simplifiedPath.at(i).coord.second;
-
-    tmpMap[x][y] = 2;
-    }
-
-    printMap(tmpMap.size(), tmpMap[0].size(), tmpMap);
-    */
-
-    /*
-        TO BE IMPLEMENTED 
-        - simplifiedPath = pathTreatment(getPath) set critical points to go to 
-        - create a vector with those points and update them if changes in the map 
-    */
     int counter=0; 
 
+    /*
     while(startNode.coord != goalNode.coord){
 
         if(startNode.costG == infinity){
@@ -167,6 +133,7 @@ int main()
         std::cout << "Press enter to continue" << std::endl; 
         getchar();
     }
+    */
     /*=============DStarImplementation===================*/
 
 
