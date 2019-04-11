@@ -12,7 +12,7 @@ void generateMap(std::vector<std::vector<int>>& mapVector, int mapRows, int mapC
 /*
 Creates an obstacle rectangle at (startX, startY)
 */
-void createRectangle(int startX, int startY, int width, int length, std::vector<std::vector<int>>& mapVector){
+void createRectangle(uint startX, uint startY, int width, int length, std::vector<std::vector<int>>& mapVector){
 
 	if( ( (startX + width) >=  mapVector.size()  ) || ( (startY + length)  >= mapVector[0].size() ) )
 	{
@@ -24,7 +24,6 @@ void createRectangle(int startX, int startY, int width, int length, std::vector<
 	{
 		for(int j = 0; j<length; j++)
 		{
-			std::cout << "i " << i << " j " << j << std::endl; 
 			mapVector[startX +i][startY+j] = 1; 
 		}
 	}
@@ -42,13 +41,12 @@ void printMap(int mapRows, int mapColumns, std::vector<std::vector<int>>& mapVec
 	}
 }
 
-void clearMap(std::vector<std::vector<int>>& mapVector, std::vector<std::pair<int,int>>& obstaclesCoord){
+void clearMap(std::vector<std::vector<int>>& mapVector){
 
-    for(int i = 0 ; i< mapVector.size(); i++){
+    for(uint i = 0 ; i< mapVector.size(); i++){
 
-        for(int j = 0; j< mapVector[0].size(); j++){
+        for(uint j = 0; j< mapVector[0].size(); j++){
             mapVector[i][j] = 0;
         }
     }
-    obstaclesCoord.clear();
 }

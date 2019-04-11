@@ -15,6 +15,7 @@
 #include <map>
 #include "mapGeneration.hpp"
 #include "dStarLite.hpp"
+#include "trajectoryHandle.hpp"
 
 //DStarGlobal 
 int mapRows {10};  
@@ -70,13 +71,13 @@ int main()
     dspic.setVar8(CODE_VAR_VERBOSE,1);  //Allow the dspic to speak on UART channel
     dspic.start();  //Start the motors
     std::cout << "dspic start" << std::endl; 
+
+
     /*=============DStarImplementation===================*/
     //dsPic initialization 
 
     // Map Generation 
     generateMap(mapVector,mapRows,mapColumns); // generates empty map 
-    std::cout << "Map generated" << std::endl; 
-    std::cout << "x " << mapVector.size() << " y " << mapVector[0].size() << std::endl; 
     createRectangle(4,4,5, 5, mapVector); // creates a 5x5 obstacle rectangle  at (4,4) 
     printMap(mapRows, mapColumns, mapVector);
     
@@ -88,7 +89,55 @@ int main()
     computeShortestPath(uList, knownNodes, startNode.coord, goalNode);
     startNode = knownNodes.at(startNode.coord); // we update the start node
     goalNode = knownNodes.at(goalNode.coord); // we update the goal node
-    std::cout << "Dstar first run" << std::endl; 
+
+
+    std::vector<Node> completePath = getPath(mapVector, knownNodes, startNode, goalNode); // get the hole path 
+
+    //Debug 
+    /*
+    std::cout <<"===== COMPLETE PATH =====" << std::endl << std::endl; 
+
+    std::vector<std::vector<int>> tmpMap = mapVector; 
+    int x,y; 
+    for(uint i = 0; i< completePath.size(); i++){
+    x = completePath.at(i).coord.first;
+    y = completePath.at(i).coord.second;
+
+    tmpMap[x][y] = 2;
+    }
+
+    printMap(tmpMap.size(), tmpMap[0].size(), tmpMap);
+
+
+    std::cout << "Press enter to continue" << std::endl; 
+    getchar();
+    */
+
+    std::vector<Node> simplifiedPath = pathTreatment(completePath);
+    simplifiedPath.push_back(goalNode); // we need to add the last node manually :(
+
+    //Debug
+    /*
+    std::cout <<"=====SIMPLIFIED PATH =====" << std::endl << std::endl; 
+
+    tmpMap = mapVector;
+ 
+    for(uint i = 0; i< simplifiedPath.size(); i++){
+    x = simplifiedPath.at(i).coord.first;
+    y = simplifiedPath.at(i).coord.second;
+
+    tmpMap[x][y] = 2;
+    }
+
+    printMap(tmpMap.size(), tmpMap[0].size(), tmpMap);
+    */
+
+    /*
+        TO BE IMPLEMENTED 
+        - simplifiedPath = pathTreatment(getPath) set critical points to go to 
+        - create a vector with those points and update them if changes in the map 
+    */
+    int counter=0; 
 
     while(startNode.coord != goalNode.coord){
 
@@ -97,24 +146,21 @@ int main()
             break;
         }
 
-        startNode = bestNode(startNode, knownNodes); // we "move" the robot
+        //startNode = bestNode(startNode, knownNodes); // we "move" the robot
+        startNode = simplifiedPath.at(counter); 
+        counter++; 
         findPath(mapVector,knownNodes,startNode,goalNode); // prints the path in the terminal 
-        
-        int xSetpoint = startNode.coord.first *10+1000; 
-        int ySetpoint = startNode.coord.second *10+1500; 
 
-        dspic.setVarDouble64b(CODE_VAR_XC_LD,xSetpoint);
-        dspic.setVarDouble64b(CODE_VAR_YC_LD,ySetpoint);
-        dspic.setVarDouble64b(CODE_VAR_XF_LD,goalNode.coord.first);
-        dspic.setVarDouble64b(CODE_VAR_YF_LD,goalNode.coord.second);
+        int xSetpoint = startNode.coord.first *50+1000; 
+        int ySetpoint = startNode.coord.second *50+1500; 
 
-        delay(100); 
-        // dspic.go(xSetpoint, ySetpoint,0,0); // we move the robot to the next point
-        // dspic.arrived = 0;  //force arrived to 0
-        // while(!dspic.arrived){
-        //     delay(50);  //wait before asking so the dspic can start the movement /  and don't SPAM the UART channel
-        //     dspic.getVar(CODE_VAR_ARRIVED); //send a request to update the arrived variable
-        // }
+        dspic.go(xSetpoint, ySetpoint,0,0); // we move the robot to the next point
+        dspic.arrived = 0;  //force arrived to 0
+        while(!dspic.arrived){
+            delay(50);  //wait before asking so the dspic can start the movement /  and don't SPAM the UART channel
+            dspic.getVar(CODE_VAR_ARRIVED); //send a request to update the arrived variable
+            delay(50); 
+        }
 
 
         // Debug 
@@ -122,7 +168,8 @@ int main()
         getchar();
     }
     /*=============DStarImplementation===================*/
-	
+
+
 	while(c != 's'){
 		puts("Press 's' to stop or any other button to start/stop the robot");
 		c = getchar();

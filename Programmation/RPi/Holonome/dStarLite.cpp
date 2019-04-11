@@ -19,6 +19,7 @@ bool compareKeys(std::pair<float, float> k1, std::pair<float,float> k2){
 		else
 			return false;
 	}
+	return false; 
 }
 
 
@@ -251,13 +252,31 @@ void findPath(std::vector<std::vector<int>>& randomMap, mappedNodes& knownNodes,
 
     int x,y;
 
-    for(int i = 0; i< path.size(); i++){
+    for(uint i = 0; i< path.size(); i++){
         x = path.at(i).coord.first;
         y = path.at(i).coord.second;
 
         printedMap[x][y] = 2;
     }
     printMap(printedMap.size(), printedMap[0].size(), printedMap);
+}
+
+/*
+Returns a Node vector with the calculated path
+*/
+std::vector<Node> getPath(std::vector<std::vector<int>>& randomMap, mappedNodes& knownNodes, Node currentNode, Node goalNode){
+    std::vector<Node> path;
+    path.push_back(currentNode);
+
+    Node tmp = currentNode;
+    std::vector<std::vector<int>> printedMap = randomMap; // we copy the map in order to print the path
+
+    while(tmp.coord != goalNode.coord){
+        tmp = bestNode(tmp, knownNodes);
+        path.push_back(tmp);
+    }
+
+    return path; 
 }
 
 /*
@@ -313,9 +332,9 @@ After map modification, the function updates all the changed Nodes
 */
 void updateMap(mappedNodes& knownNodes, std::vector<std::vector<int>>& randomMap, priorityList& uList, std::pair<int,int> startCoord, Node goalNode){
 
-    for(int i = 0 ; i< randomMap.size(); i++){
+    for(uint i = 0 ; i< randomMap.size(); i++){
 
-        for(int j = 0; j< randomMap[0].size(); j++){
+        for(uint j = 0; j< randomMap[0].size(); j++){
 
             std::pair<int,int> nodeCoord(i,j);
 
