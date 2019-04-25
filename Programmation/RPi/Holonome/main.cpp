@@ -18,13 +18,13 @@
 #include "trajectoryHandle.hpp"
 
 //DStarGlobal 
-int mapRows {15};  
-int mapColumns {15};  
+int mapRows {10};  
+int mapColumns {10};  
 float km {0}; 
 std::vector<std::vector<int>> mapVector;
  
 Node startNode = {infinity,infinity,0,std::pair<int,int>(0,0)};
-Node goalNode = {infinity,0,0,std::pair<int,int>(14,14), false};
+Node goalNode = {infinity,0,0,std::pair<int,int>(9,9), false};
 
 priorityList uList; // priority List
 mappedNodes knownNodes; // node the robot can see
@@ -104,7 +104,6 @@ int main()
 
     int counter=0; 
 
-    /*
     while(startNode.coord != goalNode.coord){
 
         if(startNode.costG == infinity){
@@ -133,7 +132,6 @@ int main()
         std::cout << "Press enter to continue" << std::endl; 
         getchar();
     }
-    */
     /*=============DStarImplementation===================*/
 
 
