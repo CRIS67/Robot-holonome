@@ -49,14 +49,6 @@ int main()
 
 {   
 
-    /*==============PIM======================*/
-    std::thread pimServer(Sockets::startServer); 
-    pimServer.join(); 
-    getchar();
-
-    /*==============PIM======================*/
-
-
     /*Init variables & threads*/
 	DsPIC dspic;
     pthread_t thread_print;
@@ -77,7 +69,7 @@ int main()
 	dspic.getVar(CODE_VAR_BAT);
 
 	dspic.initVarDspic();  //Init PID,odometry,acceleration,speed
-	dspic.initPos(1000,1500,0);    //initialize position & angle of the robot
+	dspic.initPos(320,240,0);    //initialize position & angle of the robot
 	char c = 0;
 	char started = 0;
 
@@ -88,8 +80,14 @@ int main()
     dspic.start();  //Start the motors
     std::cout << "dspic start" << std::endl; 
 
+    /*==============PIM======================*/
+    dspic.setVarDouble64b(CODE_VAR_DISTANCE_MAX_LD,1);
+    //std::thread pimServer(Sockets::startServer,dspic); 
+    //pimServer.join(); 
+    getchar();
 
-	while(c != 's'){
+    /*==============PIM======================*/
+	/*while(c != 's'){
 		puts("Press 's' to stop or any other button to start/stop the robot");
 		c = getchar();
 		if(c != 's'){
@@ -104,9 +102,10 @@ int main()
 				//dspic.setVarDouble64b(CODE_VAR_TC_LD,0);
 			}
 		}
-	}
+	}*/
 	//Test circle
-	/*double radius = 200;
+	double radius = 200;
+    dspic.initPos(1000,1500,0);
 	dspic.setVarDouble64b(CODE_VAR_DISTANCE_MAX_LD,1);	//reducing the arrival distance for more precise path following
 	dspic.setVarDouble64b(CODE_VAR_X_LD,1000+radius);
 	dspic.setVarDouble64b(CODE_VAR_Y_LD,1500);
@@ -118,14 +117,16 @@ int main()
 		dspic.setVarDouble64b(CODE_VAR_XF_LD,x);
 		dspic.setVarDouble64b(CODE_VAR_YF_LD,y);
 		delay(20);
-	}*/
+	}
 	dspic.stop();
     //dspic.initPos(1000,1500,0);
 	dspic.setVar8(CODE_VAR_VERBOSE,0);
 	puts("verbose set to 0");
 
     puts("exiting ...");
+    //pimServer.join(); 
     //pthread_exit(NULL);
+    
 
     return 0;
 }

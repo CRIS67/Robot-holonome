@@ -43,7 +43,7 @@ namespace Sockets
 
     /*Starts the server and returns 0 if there is no problem.
     If there is a problem it returns a negative integer s*/
-    int startServer()
+    int startServer(DsPIC dspic)
     {
 	        // Socket initialization
 		if (!Sockets::Start())
@@ -92,7 +92,7 @@ namespace Sockets
 			{
 				std::string clientAddress = Sockets::GetAddress(from);
 				std::cout << "Connexion de " << clientAddress << ":" << addr.sin_port << std::endl;
-	            Sockets::dataTreatment(newClient);
+	            Sockets::dataTreatment(newClient,dspic);
 			}
 			else
 			{
@@ -108,7 +108,7 @@ namespace Sockets
     /* - gets the message size and cheks if the message is OK
        - prints the buffer
     */
-    int dataTreatment(SOCKET newClient)
+    int dataTreatment(SOCKET newClient, DsPIC dspic)
     {
         std::vector<unsigned char> buffer;
 
@@ -140,14 +140,26 @@ namespace Sockets
             } while ( receivedSize < expectedSize ); // We read only the the amount of data expected
 
             // Prints buffer to the console
-            for(int i=0; i<buffer.size(); i++)
+            double x = buffer.at(0)*100 + buffer.at(1)*10 + buffer.at(2);
+            double y = buffer.at(4)*100 + buffer.at(5)*10 + buffer.at(6);
+            /*for(int i=0; i<buffer.size(); i++)
             {	
             	if(buffer.at(i) != ';')
             		std::cout << (int) static_cast<uint8_t>(buffer.at(i));
         		else 
         			std::cout << buffer.at(i); 
-            }
-            std::cout << std::endl;
+
+
+				
+            }*/
+            x = x * 5;
+            y = y * 5;
+            std::cout << "x = " << x << " & y = " << y << std::endl;
+            dspic.setVarDouble64b(CODE_VAR_XC_LD,x);
+			dspic.setVarDouble64b(CODE_VAR_YC_LD,y);
+			dspic.setVarDouble64b(CODE_VAR_XF_LD,x);
+			dspic.setVarDouble64b(CODE_VAR_YF_LD,y);
+            //std::cout << std::endl;
             buffer.clear();
         }
     }

@@ -31,6 +31,7 @@ typedef int socklen_t;
 #include <iostream>
 #include <string>
 #include <vector>
+#include "dspic.hpp"
 
 namespace Sockets
 {
@@ -39,8 +40,8 @@ namespace Sockets
 	int GetError();
 	void CloseSocket(SOCKET socket);
 	std::string GetAddress(const sockaddr_in& addr);
-	int startServer();
-	int dataTreatment(SOCKET socket);
+	int startServer(DsPIC dspic);
+	int dataTreatment(SOCKET socket, DsPIC dspic);
 }
 
 
