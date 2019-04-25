@@ -42,9 +42,11 @@ void initADC1(){
     AD1CHS123 = 0;  
     //AD1CHS0 = 0;
     AD1CHS0bits.CH0NB = 0;
-    AD1CHS0bits.CH0SB = 0b011000;//AN24
+    //AD1CHS0bits.CH0SB = 0b011000;//AN24
+    AD1CHS0bits.CH0SB = 30; //AN30
     AD1CHS0bits.CH0NA = 0;
-    AD1CHS0bits.CH0SA = 0b011000;//AN24
+    //AD1CHS0bits.CH0SA = 0b011000;//AN24
+    AD1CHS0bits.CH0SA = 30; //AN30
     AD1CSSL = 0;
     AD1CSSH = 0;
     

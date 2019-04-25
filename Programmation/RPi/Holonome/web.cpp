@@ -139,6 +139,17 @@ void* thread_HandleConnnection(void *threadid){
 				sendStr = realResponse(w);
 				break;	//if update => no other cmd executed
 			}
+			else if(!strcmp(cmd,"stop")){
+				if(val == NULL){
+					errorStr += "Error : stop value token = NULL\n";
+					error = true;
+					break;
+				}
+				if(atoi(val) == 1){
+					w->dspic->stop();
+				}
+				
+			}
 			else if(!strcmp(cmd,"x")){
 				if(val == NULL){
 					errorStr += "Error : x value token = NULL\n";
@@ -371,9 +382,9 @@ void* thread_HandleConnnection(void *threadid){
 					break;
 				}
 				int32_t longVal = atol(val);
-				uint32_t value = (uint32_t)longVal;
-				w->dspic->setVar32(CODE_VAR_P_SPEED_L,value);
-				printf("P1 (Speed Left) set to %u", value);
+				double value = (double)longVal;
+				value /= COEF_SCALE_PID;
+				w->dspic->setVarDouble64b(CODE_VAR_P_SPEED_0_LD,value);
 			}
 			else if(!strcmp(cmd,"i1")){
 				if(val == NULL){
@@ -383,9 +394,9 @@ void* thread_HandleConnnection(void *threadid){
 					break;
 				}
 				int32_t longVal = atol(val);
-				uint32_t value = (uint32_t)longVal;
-				w->dspic->setVar32(CODE_VAR_I_SPEED_L,value);
-				printf("I1 (Speed Left) set to %u", value);
+				double value = (double)longVal;
+				value /= COEF_SCALE_PID;
+				w->dspic->setVarDouble64b(CODE_VAR_I_SPEED_0_LD,value);
 			}
 			else if(!strcmp(cmd,"d1")){
 				if(val == NULL){
@@ -395,9 +406,9 @@ void* thread_HandleConnnection(void *threadid){
 					break;
 				}
 				int32_t longVal = atol(val);
-				uint32_t value = (uint32_t)longVal;
-				w->dspic->setVar32(CODE_VAR_D_SPEED_L,value);
-				printf("D1 (Speed Left) set to %u", value);
+				double value = (double)longVal;
+				value /= COEF_SCALE_PID;
+				w->dspic->setVarDouble64b(CODE_VAR_D_SPEED_0_LD,value);
 			}
 			else if(!strcmp(cmd,"p2")){
 				if(val == NULL){
@@ -407,9 +418,9 @@ void* thread_HandleConnnection(void *threadid){
 					break;
 				}
 				int32_t longVal = atol(val);
-				uint32_t value = (uint32_t)longVal;
-				w->dspic->setVar32(CODE_VAR_P_SPEED_R,value);
-				printf("P2 (Speed Right) set to %u", value);
+				double value = (double)longVal;
+				value /= COEF_SCALE_PID;
+				w->dspic->setVarDouble64b(CODE_VAR_P_SPEED_1_LD,value);
 			}
 			else if(!strcmp(cmd,"i2")){
 				if(val == NULL){
@@ -419,9 +430,9 @@ void* thread_HandleConnnection(void *threadid){
 					break;
 				}
 				int32_t longVal = atol(val);
-				uint32_t value = (uint32_t)longVal;
-				w->dspic->setVar32(CODE_VAR_I_SPEED_R,value);
-				printf("I2 (Speed Right) set to %u", value);
+				double value = (double)longVal;
+				value /= COEF_SCALE_PID;
+				w->dspic->setVarDouble64b(CODE_VAR_I_SPEED_1_LD,value);
 			}
 			else if(!strcmp(cmd,"d2")){
 				if(val == NULL){
@@ -431,9 +442,9 @@ void* thread_HandleConnnection(void *threadid){
 					break;
 				}
 				int32_t longVal = atol(val);
-				uint32_t value = (uint32_t)longVal;
-				w->dspic->setVar32(CODE_VAR_D_SPEED_R,value);
-				printf("D2 (Speed Right) set to %u", value);
+				double value = (double)longVal;
+				value /= COEF_SCALE_PID;
+				w->dspic->setVarDouble64b(CODE_VAR_D_SPEED_1_LD,value);
 			}
 			else if(!strcmp(cmd,"p3")){
 				if(val == NULL){
@@ -443,9 +454,9 @@ void* thread_HandleConnnection(void *threadid){
 					break;
 				}
 				int32_t longVal = atol(val);
-				uint32_t value = (uint32_t)longVal;
-				w->dspic->setVar32(CODE_VAR_P_DISTANCE,value);
-				printf("P3 (Distance) set to %u", value);
+				double value = (double)longVal;
+				value /= COEF_SCALE_PID;
+				w->dspic->setVarDouble64b(CODE_VAR_P_DISTANCE_LD,value);
 			}
 			else if(!strcmp(cmd,"i3")){
 				if(val == NULL){
@@ -455,9 +466,9 @@ void* thread_HandleConnnection(void *threadid){
 					break;
 				}
 				int32_t longVal = atol(val);
-				uint32_t value = (uint32_t)longVal;
-				w->dspic->setVar32(CODE_VAR_I_DISTANCE,value);
-				printf("I3 (Distance) set to %u", value);
+				double value = (double)longVal;
+				value /= COEF_SCALE_PID;
+				w->dspic->setVarDouble64b(CODE_VAR_I_DISTANCE_LD,value);
 			}
 			else if(!strcmp(cmd,"d3")){
 				if(val == NULL){
@@ -467,9 +478,9 @@ void* thread_HandleConnnection(void *threadid){
 					break;
 				}
 				int32_t longVal = atol(val);
-				uint32_t value = (uint32_t)longVal;
-				w->dspic->setVar32(CODE_VAR_D_DISTANCE,value);
-				printf("D3 (Distance) set to %u", value);
+				double value = (double)longVal;
+				value /= COEF_SCALE_PID;
+				w->dspic->setVarDouble64b(CODE_VAR_D_DISTANCE_LD,value);
 			}
 			else if(!strcmp(cmd,"p4")){
 				if(val == NULL){
@@ -479,9 +490,9 @@ void* thread_HandleConnnection(void *threadid){
 					break;
 				}
 				int32_t longVal = atol(val);
-				uint32_t value = (uint32_t)longVal;
-				w->dspic->setVar32(CODE_VAR_P_ANGLE,value);
-				printf("P4 (Angle) set to %u", value);
+				double value = (double)longVal;
+				value /= COEF_SCALE_PID;
+				w->dspic->setVarDouble64b(CODE_VAR_P_ANGLE_LD,value);
 			}
 			else if(!strcmp(cmd,"i4")){
 				if(val == NULL){
@@ -491,9 +502,9 @@ void* thread_HandleConnnection(void *threadid){
 					break;
 				}
 				int32_t longVal = atol(val);
-				uint32_t value = (uint32_t)longVal;
-				w->dspic->setVar32(CODE_VAR_I_ANGLE,value);
-				printf("I4 (Angle) set to %u", value);
+				double value = (double)longVal;
+				value /= COEF_SCALE_PID;
+				w->dspic->setVarDouble64b(CODE_VAR_I_ANGLE_LD,value);
 			}
 			else if(!strcmp(cmd,"d4")){
 				if(val == NULL){
@@ -503,14 +514,59 @@ void* thread_HandleConnnection(void *threadid){
 					break;
 				}
 				int32_t longVal = atol(val);
-				uint32_t value = (uint32_t)longVal;
-				w->dspic->setVar32(CODE_VAR_D_ANGLE,value);
-				printf("D4 (Angle) set to %u", value);
+				double value = (double)longVal;
+				value /= COEF_SCALE_PID;
+				w->dspic->setVarDouble64b(CODE_VAR_D_ANGLE_LD,value);
 			}
 			else if(!strcmp(cmd,"loadPID")){
 				w->dspic->loadPID();
 				w->waitingResponsePID = true;
 				w->dspic->isPIDUpdated = false;
+			}
+			else if(!strcmp(cmd,"odo1")){
+				if(val == NULL){
+					errorStr += "Error : COEF_DISSYMETRY value token = NULL\n";
+					error = true;
+					puts("Error : COEF_DISSYMETRY token = NULL\n");
+					break;
+				}
+				/*int32_t longVal = atol(val);
+				uint32_t value = (uint32_t)longVal;
+				w->dspic->setVar32(CODE_VAR_COEF_DISSYMETRY,value);
+				printf("COEF_DISSYMETRY set to %u\n", value);*/
+				double doubleVal = atof(val);
+				w->dspic->setVarDouble64b(CODE_VAR_COEF_DISSYMETRY_LD,doubleVal);
+				printf("COEF_DISSYMETRY set to %f\n", doubleVal);
+			}
+			else if(!strcmp(cmd,"odo2")){
+				if(val == NULL){
+					errorStr += "Error : MM_PER_TICKS value token = NULL\n";
+					error = true;
+					puts("Error : MM_PER_TICKS token = NULL\n");
+					break;
+				}
+				/*int32_t longVal = atol(val);
+				uint32_t value = (uint32_t)longVal;
+				w->dspic->setVar32(CODE_VAR_MM_PER_TICKS,value);
+				printf("MM_PER_TICKS set to %u\n", value);*/
+				double doubleVal = atof(val);
+				w->dspic->setVarDouble64b(CODE_VAR_MM_PER_TICKS_LD,doubleVal);
+				printf("MM_PER_TICKS set to %f\n", doubleVal);
+			}
+			else if(!strcmp(cmd,"odo3")){
+				if(val == NULL){
+					errorStr += "Error : RAD_PER_TICKS value token = NULL\n";
+					error = true;
+					puts("Error : RAD_PER_TICKS token = NULL\n");
+					break;
+				}
+				/*int32_t longVal = atol(val);
+				uint32_t value = (uint32_t)longVal;
+				w->dspic->setVar32(CODE_VAR_DISTANCE_BETWEEN_ENCODER_WHEELS,value);
+				printf("DISTANCE_BETWEEN_ENCODER_WHEELS set to %u\n", value);*/
+				double doubleVal = atof(val);
+				w->dspic->setVarDouble64b(CODE_VAR_RAD_PER_TICKS_LD,doubleVal);
+				printf("RAD_PER_TICKS set to %f\n", doubleVal);
 			}
 			else{
 				errorStr += "Received command is not valid : " + str + "\n";
@@ -562,6 +618,9 @@ std::string realResponse(Web *w){
 	myString << dspic->y;
 	myString << "&t=";
 	myString << dspic->t;
+	
+	myString << "&b=";
+	myString << dspic->bat;
 
 	myString << "&r1=";
 	myString << dspic->rupt.ass0;
@@ -605,7 +664,7 @@ std::string realResponse(Web *w){
 	}
 	if(w->waitingResponsePID && w->dspic->isPIDUpdated){
         w->waitingResponsePID = false;
-		myString << "&p1=";
+		/*myString << "&p1=";
 		myString << dspic->pidSpeedLeft.Kp;
 		myString << "&i1=";
 		myString << dspic->pidSpeedLeft.Ki;
@@ -618,6 +677,34 @@ std::string realResponse(Web *w){
 		myString << dspic->pidSpeedRight.Ki;
 		myString << "&a2=";
 		myString << dspic->pidSpeedRight.Kd;
+
+		myString << "&p3=";
+		myString << dspic->pidDistance.Kp;
+		myString << "&i3=";
+		myString << dspic->pidDistance.Ki;
+		myString << "&a3=";
+		myString << dspic->pidDistance.Kd;
+
+		myString << "&p4=";
+		myString << dspic->pidAngle.Kp;
+		myString << "&i4=";
+		myString << dspic->pidAngle.Ki;
+		myString << "&a4=";
+		myString << dspic->pidAngle.Kd;*/
+		
+		myString << "&p1=";
+		myString << dspic->pidSpeed0.Kp;
+		myString << "&i1=";
+		myString << dspic->pidSpeed0.Ki;
+		myString << "&a1=";
+		myString << dspic->pidSpeed0.Kd;
+
+		myString << "&p2=";
+		myString << dspic->pidSpeed1.Kp;
+		myString << "&i2=";
+		myString << dspic->pidSpeed1.Ki;
+		myString << "&a2=";
+		myString << dspic->pidSpeed1.Kd;
 
 		myString << "&p3=";
 		myString << dspic->pidDistance.Kp;

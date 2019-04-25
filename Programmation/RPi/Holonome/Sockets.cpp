@@ -45,63 +45,63 @@ namespace Sockets
     If there is a problem it returns a negative integer s*/
     int startServer()
     {
-        // Socket initialization
-	if (!Sockets::Start())
-	{
-		std::cout << "Erreur initialisation WinSock : " << Sockets::GetError();
-		return -1;
-	}
-
-	SOCKET server = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP); // TCP socket creation
-
-	if (server == INVALID_SOCKET)
-	{
-		std::cout << "Erreur initialisation socket : " << Sockets::GetError();
-		return -2;
-	}
-
-	const unsigned short port = 9999;
-	sockaddr_in addr; // socket structure
-	addr.sin_addr.s_addr = INADDR_ANY; // any source is accepted
-	addr.sin_port = htons(port); // port number has to bee translated to network data
-	addr.sin_family = AF_INET; // socket type : TCP
-
-	int res = bind(server, (sockaddr*)&addr, sizeof(addr)); // local port associated to socket
-	if (res != 0)
-	{
-		std::cout << "Erreur bind : " << Sockets::GetError();
-		return -3;
-	}
-
-	res = listen(server, SOMAXCONN); // socket can listen for connections
-	if (res != 0)
-	{
-		std::cout << "Erreur listen : " << Sockets::GetError();
-		return -4;
-	}
-
-	std::cout << "Serveur demarre sur le port " << port << std::endl;
-
-    // Wait for incoming socket
-	for (;;)
-	{
-		sockaddr_in from = { 0 };
-		socklen_t addrlen = sizeof(addr);
-		SOCKET newClient = accept(server, (sockaddr*)(&from), &addrlen); // waits for new connection
-		if (newClient != INVALID_SOCKET)
+	        // Socket initialization
+		if (!Sockets::Start())
 		{
-			std::string clientAddress = Sockets::GetAddress(from);
-			std::cout << "Connexion de " << clientAddress << ":" << addr.sin_port << std::endl;
-            Sockets::dataTreatment(newClient);
+			std::cout << "Erreur initialisation WinSock : " << Sockets::GetError();
+			return -1;
 		}
-		else
+
+		SOCKET server = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP); // TCP socket creation
+
+		if (server == INVALID_SOCKET)
 		{
-            return -5;
+			std::cout << "Erreur initialisation socket : " << Sockets::GetError();
+			return -2;
 		}
-	}
-	Sockets::CloseSocket(server);
-	Sockets::Release();
-	return 0;
+
+		const unsigned short port = 9999;
+		sockaddr_in addr; // socket structure
+		addr.sin_addr.s_addr = INADDR_ANY; // any source is accepted
+		addr.sin_port = htons(port); // port number has to bee translated to network data
+		addr.sin_family = AF_INET; // socket type : TCP
+
+		int res = bind(server, (sockaddr*)&addr, sizeof(addr)); // local port associated to socket
+		if (res != 0)
+		{
+			std::cout << "Erreur bind : " << Sockets::GetError();
+			return -3;
+		}
+
+		res = listen(server, SOMAXCONN); // socket can listen for connections
+		if (res != 0)
+		{
+			std::cout << "Erreur listen : " << Sockets::GetError();
+			return -4;
+		}
+
+		std::cout << "Serveur demarre sur le port " << port << std::endl;
+
+	    // Wait for incoming socket
+		for (;;)
+		{
+			sockaddr_in from = { 0 };
+			socklen_t addrlen = sizeof(addr);
+			SOCKET newClient = accept(server, (sockaddr*)(&from), &addrlen); // waits for new connection
+			if (newClient != INVALID_SOCKET)
+			{
+				std::string clientAddress = Sockets::GetAddress(from);
+				std::cout << "Connexion de " << clientAddress << ":" << addr.sin_port << std::endl;
+	            Sockets::dataTreatment(newClient);
+			}
+			else
+			{
+	            return -5;
+			}
+		}
+		Sockets::CloseSocket(server);
+		Sockets::Release();
+		return 0;
     }
 
 
@@ -137,7 +137,7 @@ namespace Sockets
                 {
                     receivedSize += ret;
                 }
-            } while ( receivedSize < expectedSize ); // We read onle the the amount of data expected
+            } while ( receivedSize < expectedSize ); // We read only the the amount of data expected
 
             // Prints buffer to the console
             for(int i=0; i<buffer.size(); i++)

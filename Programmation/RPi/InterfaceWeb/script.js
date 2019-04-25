@@ -1,3 +1,8 @@
+var COEF_SCALE_COEF_DISSYMETRY = 10000;
+var COEF_SCALE_MM_PER_TICKS = 1000;
+var COEF_SCALE_DISTANCE_BETWEEN_ENCODER_WHEELS = 1000;
+var COEF_SCALE_PID = 1000000;
+
 window.onload = function () {
 		/*variables*/
 		var dps = [];   //dataPoints. 
@@ -616,6 +621,15 @@ window.onload = function () {
 			]
 		});
 
+		document.addEventListener('keypress', (event) => {
+		  if(event.key == 32 || event.key === ' '){
+			  sendCmd('stop=1');
+			  alert('Emergency stop pressed');
+		  }
+		//alert('Évènement keypress\n\n' + 'touche : ' + nomTouche);
+
+		  
+		});
 		/*INIT ONGLET 1*/
 		if(document.getElementById("checkbox_canvas").checked){
 			var intervalCanvas = Number(document.getElementById("inputText_canvasRrefreshRate").value);
@@ -667,25 +681,11 @@ window.onload = function () {
 		    }
 		});
 		
-		$("#testButton2").click(function(event){
+		$("#Button_ClearChart").click(function(event){
 			clearChart();
 		});
-		$("#testButton3").click(function(event){
-			clearChart();
-			data = "";
-			for (var i = 0; i <= 150; i++) {
-				data += "#";
-				data += i;
-				data += " ";
-				var b = Math.sin(i/20);
-				data += b
-				data += "\n";
-				var a = 1;
-				if(b < 0){
-					a = -1;
-				}
-				dps2.push({x: i,y: a});
-			}
+		$("#ButtonClearChartsPID").click(function(event){
+			clearChartPID();
 		});
 		$("#button_go").click(function(event){
 			var xDest = Number(document.getElementById("inputText_destX").value);
@@ -717,18 +717,18 @@ window.onload = function () {
 			downloadLogTerminal();
 		});
 		$("#ButtonSendPID").click(function(event){
-			var cmd = "p1=" + parseInt(document.getElementById("numberP1").value * 1000);
-			cmd += "&i1=" + parseInt(document.getElementById("numberI1").value * 1000);
-			cmd += "&d1=" + parseInt(document.getElementById("numberD1").value * 1000);
-			cmd += "&p2=" + parseInt(document.getElementById("numberP2").value * 1000);
-			cmd += "&i2=" + parseInt(document.getElementById("numberI2").value * 1000);
-			cmd += "&d2=" + parseInt(document.getElementById("numberD2").value * 1000);
-			cmd += "&p3=" + parseInt(document.getElementById("numberP3").value * 1000);
-			cmd += "&i3=" + parseInt(document.getElementById("numberI3").value * 1000);
-			cmd += "&d3=" + parseInt(document.getElementById("numberD3").value * 1000);
-			cmd += "&p4=" + parseInt(document.getElementById("numberP4").value * 1000);
-			cmd += "&i4=" + parseInt(document.getElementById("numberI4").value * 1000);
-			cmd += "&d4=" + parseInt(document.getElementById("numberD4").value * 1000);
+			var cmd = "p1=" + parseInt(document.getElementById("numberP1").value * COEF_SCALE_PID);
+			cmd += "&i1=" + parseInt(document.getElementById("numberI1").value * COEF_SCALE_PID);
+			cmd += "&d1=" + parseInt(document.getElementById("numberD1").value * COEF_SCALE_PID);
+			cmd += "&p2=" + parseInt(document.getElementById("numberP2").value * COEF_SCALE_PID);
+			cmd += "&i2=" + parseInt(document.getElementById("numberI2").value * COEF_SCALE_PID);
+			cmd += "&d2=" + parseInt(document.getElementById("numberD2").value * COEF_SCALE_PID);
+			cmd += "&p3=" + parseInt(document.getElementById("numberP3").value * COEF_SCALE_PID);
+			cmd += "&i3=" + parseInt(document.getElementById("numberI3").value * COEF_SCALE_PID);
+			cmd += "&d3=" + parseInt(document.getElementById("numberD3").value * COEF_SCALE_PID);
+			cmd += "&p4=" + parseInt(document.getElementById("numberP4").value * COEF_SCALE_PID);
+			cmd += "&i4=" + parseInt(document.getElementById("numberI4").value * COEF_SCALE_PID);
+			cmd += "&d4=" + parseInt(document.getElementById("numberD4").value * COEF_SCALE_PID);
 			sendCmd(cmd);
 		});
 		$("#ButtonLoadPID").click(function(event){
@@ -1053,6 +1053,19 @@ window.onload = function () {
 				clearInterval(chartInterval);
 			}
 		});*/
+
+		$("#ButtonSendOdo1").click(function(event){
+			var cmd = "odo1=" + parseInt(document.getElementById("numberOdo1").value * COEF_SCALE_COEF_DISSYMETRY);
+			sendCmd(cmd);
+		});
+		$("#ButtonSendOdo2").click(function(event){
+			var cmd = "odo2=" + parseInt(document.getElementById("numberOdo2").value * COEF_SCALE_MM_PER_TICKS);
+			sendCmd(cmd);
+		});
+		$("#ButtonSendOdo3").click(function(event){
+			var cmd = "odo3=" + parseInt(document.getElementById("numberOdo3").value * COEF_SCALE_DISTANCE_BETWEEN_ENCODER_WHEELS);
+			sendCmd(cmd);
+		});
 		
 		function sendData() {
 			var data = $("#inputText").val();
@@ -1093,6 +1106,47 @@ window.onload = function () {
 			dps7.length = 0;
 			dps8.length = 0;
 			dps9.length = 0;
+		}
+		function clearChartPID() {
+			dps11.length = 0;
+			dps12.length = 0;
+			dps13.length = 0;
+			dps14.length = 0;
+			dps15.length = 0;
+			dps16.length = 0;
+			dps17.length = 0;
+			dps18.length = 0;
+			dps19.length = 0;
+			
+			dps21.length = 0;
+			dps22.length = 0;
+			dps23.length = 0;
+			dps24.length = 0;
+			dps25.length = 0;
+			dps26.length = 0;
+			dps27.length = 0;
+			dps28.length = 0;
+			dps29.length = 0;
+			
+			dps31.length = 0;
+			dps32.length = 0;
+			dps33.length = 0;
+			dps34.length = 0;
+			dps35.length = 0;
+			dps36.length = 0;
+			dps37.length = 0;
+			dps38.length = 0;
+			dps39.length = 0;
+			
+			dps41.length = 0;
+			dps42.length = 0;
+			dps43.length = 0;
+			dps44.length = 0;
+			dps45.length = 0;
+			dps46.length = 0;
+			dps47.length = 0;
+			dps48.length = 0;
+			dps49.length = 0;
 		}
 		function download(data, filename, type) {
 			var file = new Blob([data], {type: type});
@@ -1332,6 +1386,12 @@ window.onload = function () {
 							tRobot1 = t;
 							updateChart = 1;
 						}
+						else if(subString[i].charAt(0) == 'b'){
+							vbat = Number(subString[i].slice(2));
+							vbat = Math.round(vbat*100)/100;
+							document.getElementById('outputText_BatteryVoltage').value = vbat;
+							document.getElementById('outputText_BatteryPercentage').value = voltageToPercentage(vbat);
+						}
 						
 						else if(subString[i].charAt(0) == 'c'){	//curve
 							
@@ -1518,16 +1578,16 @@ window.onload = function () {
 							subString[i] = subString[i].slice(3);	//remove px=
 							switch(nb){
 								case 1:
-									document.getElementById("numberP1").value = Number(subString[i]) / 1000;
+									document.getElementById("numberP1").value = Number(subString[i]);
 									break;
 								case 2:
-									document.getElementById("numberP2").value = Number(subString[i]) / 1000;
+									document.getElementById("numberP2").value = Number(subString[i]);
 									break;
 								case 3:
-									document.getElementById("numberP3").value = Number(subString[i]) / 1000;
+									document.getElementById("numberP3").value = Number(subString[i]);
 									break;
 								case 4:
-									document.getElementById("numberP4").value = Number(subString[i]) / 1000;
+									document.getElementById("numberP4").value = Number(subString[i]);
 									break;
 							}
 						}
@@ -1536,16 +1596,16 @@ window.onload = function () {
 							subString[i] = subString[i].slice(3);	//remove px=
 							switch(nb){
 								case 1:
-									document.getElementById("numberI1").value = Number(subString[i]) / 1000;
+									document.getElementById("numberI1").value = Number(subString[i]);
 									break;
 								case 2:
-									document.getElementById("numberI2").value = Number(subString[i]) / 1000;
+									document.getElementById("numberI2").value = Number(subString[i]);
 									break;
 								case 3:
-									document.getElementById("numberI3").value = Number(subString[i]) / 1000;
+									document.getElementById("numberI3").value = Number(subString[i]);
 									break;
 								case 4:
-									document.getElementById("numberI4").value = Number(subString[i]) / 1000;
+									document.getElementById("numberI4").value = Number(subString[i]);
 									break;
 							}
 						}
@@ -1554,16 +1614,16 @@ window.onload = function () {
 							subString[i] = subString[i].slice(3);	//remove px=
 							switch(nb){
 								case 1:
-									document.getElementById("numberD1").value = Number(subString[i]) / 1000;
+									document.getElementById("numberD1").value = Number(subString[i]);
 									break;
 								case 2:
-									document.getElementById("numberD2").value = Number(subString[i]) / 1000;
+									document.getElementById("numberD2").value = Number(subString[i]);
 									break;
 								case 3:
-									document.getElementById("numberD3").value = Number(subString[i]) / 1000;
+									document.getElementById("numberD3").value = Number(subString[i]);
 									break;
 								case 4:
-									document.getElementById("numberD4").value = Number(subString[i]) / 1000;
+									document.getElementById("numberD4").value = Number(subString[i]);
 									break;
 							}
 						}
@@ -1603,9 +1663,11 @@ window.onload = function () {
 					
 					var r = this.responseText;
 					//if(r != "OK"){
-					if(!r.startWith("OK")){
-						alert("Error occured during SendCmd function : server did not respond \"OK\".\nResponse : " + r);
-					}
+					/*if( r != null){
+						if(!r.startsWith("OK")){
+							alert("Error occured during SendCmd function : server did not respond \"OK\".\nResponse : " + r);
+						}
+					}*/
 				}
 			}
 			//xhr.send("cmd=" + cmd);
@@ -1621,5 +1683,49 @@ window.onload = function () {
 			document.getElementById("outputText_posY").value = yRobot1;
 			document.getElementById("outputText_posT").value = tRobot1;
 		}
-	
+		function voltageToPercentage(voltage){
+			var percentage = 0;
+			if(voltage < 12){
+				percentage = 0;
+			}
+			else if(voltage <= 13.2){
+				percentage = (voltage - 12) / 1.2 * 5;
+			}
+			else if(voltage <= 14.4){
+				percentage = 5 + (voltage - 13.2) / 1.2 * 5;					
+			}
+			else if(voltage <= 14.8){
+				percentage = 10 + (voltage - 14.4) / 0.4 * 10;					
+			}
+			else if(voltage <= 15){
+				percentage = 20 + (voltage - 14.8) / 0.2 * 10;					
+			}
+			else if(voltage <= 15.16){
+				percentage = 30 + (voltage - 15) / 0.16 * 10;					
+			}
+			else if(voltage <= 15.32){
+				percentage = 40 + (voltage - 15.16) / 0.16 * 10;					
+			}
+			else if(voltage <= 15.48){
+				percentage = 50 + (voltage - 15.32) / 0.16 * 10;					
+			}
+			else if(voltage <= 15.68){
+				percentage = 60 + (voltage - 15.48) / 0.2 * 10;					
+			}
+			else if(voltage <= 15.88){
+				percentage = 70 + (voltage - 15.68) / 0.2 * 10;					
+			}
+			else if(voltage <= 16.4){
+				percentage = 80 + (voltage - 15.88) / 0.62 * 10;					
+			}
+			else if(voltage <= 16.8){
+				percentage = 90 + (voltage - 16.4) / 0.4 * 10;					
+			}
+			else{
+				percentage = 100;
+			}
+			
+			percentage = Math.round(percentage * 100)/100;
+			return percentage;
+		}
 }

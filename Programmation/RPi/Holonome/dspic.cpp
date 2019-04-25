@@ -6,6 +6,32 @@ DsPIC::DsPIC(){
 DsPIC::~DsPIC(){
 
 }
+void DsPIC::initVarDspic(){    //Init PID,odometry,acceleration,speed
+    setVarDouble64b(CODE_VAR_P_SPEED_0_LD,3);
+    setVarDouble64b(CODE_VAR_P_SPEED_1_LD,3);
+    setVarDouble64b(CODE_VAR_P_SPEED_2_LD,3);
+    
+    setVarDouble64b(CODE_VAR_I_SPEED_0_LD,0);
+    setVarDouble64b(CODE_VAR_I_SPEED_1_LD,0);
+    setVarDouble64b(CODE_VAR_I_SPEED_2_LD,0);
+    
+    //setVarDouble64b(CODE_VAR_P_DISTANCE_LD,0.02);
+    //setVarDouble64b(CODE_VAR_P_DISTANCE_LD,0);
+    setVarDouble64b(CODE_VAR_P_DISTANCE_LD,0.1);
+    
+    setVarDouble64b(CODE_VAR_P_ANGLE_LD,0.05);
+    
+    setVarDouble64b(CODE_VAR_TRAJ_LIN_SPEED_LD,200);
+    setVarDouble64b(CODE_VAR_TRAJ_LIN_ACC_LD,200);
+    
+    double wheelDiameter0 = 63.8;
+    double wheelDiameter1 = 63.8;
+    double wheelDiameter2 = wheelDiameter1 * 0.95;
+    
+    setVarDouble64b(CODE_VAR_WHEEL_DIAMETER0_LD,wheelDiameter0);
+    setVarDouble64b(CODE_VAR_WHEEL_DIAMETER1_LD,wheelDiameter1);
+    setVarDouble64b(CODE_VAR_WHEEL_DIAMETER2_LD,wheelDiameter2);
+}
 void DsPIC::servo(uint8_t id, uint16_t value){
     uint8_t buffer[RX_SIZE_SERVO + 1];
     buffer[0] = RX_SIZE_SERVO;
@@ -135,6 +161,44 @@ void DsPIC::turn(int16_t t,unsigned char rev, unsigned char relative){
         serialPutchar (fd, buffer[i]);
     }
 }
+void DsPIC::initPos(double x, double y, double t){
+    //init position & angle
+    setVarDouble64b(CODE_VAR_X_LD,x);
+    setVarDouble64b(CODE_VAR_Y_LD,y);
+    setVarDouble64b(CODE_VAR_T_LD,t);
+    //set setPoint to new position
+    setVarDouble64b(CODE_VAR_XC_LD,x);
+    setVarDouble64b(CODE_VAR_YC_LD,y);
+    setVarDouble64b(CODE_VAR_TC_LD,t);
+    //set aimed point to new position
+    setVarDouble64b(CODE_VAR_XF_LD,x);
+    setVarDouble64b(CODE_VAR_YF_LD,y);
+    setVarDouble64b(CODE_VAR_TF_LD,t);
+}
+void DsPIC::setVarDouble64b(uint8_t varCode, double Var){
+    double *ptrVar = &Var;
+    uint8_t *ptr = (uint8_t*)ptrVar;
+    uint8_t buffer[RX_SIZE_SET_64b + 1];
+    buffer[0] = RX_SIZE_SET_64b;
+    buffer[1] = RX_CODE_SET;
+    buffer[2] = varCode;
+    buffer[3] = VAR_LD_64b;
+    buffer[4] = ptr[0];
+    buffer[5] = ptr[1];
+    buffer[6] = ptr[2];
+    buffer[7] = ptr[3];
+    buffer[8] = ptr[4];
+    buffer[9] = ptr[5];
+    buffer[10] = ptr[6];
+    buffer[11] = ptr[7];
+    buffer[12] = 0;
+    for(int i = 0; i < RX_SIZE_SET_64b; i++){
+        buffer[12] += buffer[i]; //checksum
+    }
+    for(int i = 0; i < RX_SIZE_SET_64b + 1; i++){
+        serialPutchar (fd, buffer[i]);
+    }
+}
 void DsPIC::setVar32(uint8_t varCode, uint32_t var){
 
     uint8_t buffer[RX_SIZE_SET_32b + 1];
@@ -154,6 +218,7 @@ void DsPIC::setVar32(uint8_t varCode, uint32_t var){
         serialPutchar (fd, buffer[i]);
     }
 }
+
 void DsPIC::setVar8(uint8_t varCode, uint8_t var){
 
     uint8_t buffer[RX_SIZE_SET_8b + 1];
@@ -170,11 +235,11 @@ void DsPIC::setVar8(uint8_t varCode, uint8_t var){
         serialPutchar (fd, buffer[i]);
     }
 }
-void DsPIC::loadPID(){
+void DsPIC::getVar(uint8_t varCode){
     uint8_t buffer[RX_SIZE_GET + 1];
     buffer[0] = RX_SIZE_GET;
     buffer[1] = RX_CODE_GET;
-    buffer[2] = CODE_VAR_ALLPID;
+    buffer[2] = varCode;
     buffer[3] = 0;
     for(int i = 0; i < RX_SIZE_GET; i++){
         buffer[3] += buffer[i]; //checksum
@@ -182,6 +247,9 @@ void DsPIC::loadPID(){
     for(int i = 0; i < RX_SIZE_GET + 1; i++){
         serialPutchar (fd, buffer[i]);
     }
+}
+void DsPIC::loadPID(){
+    getVar(CODE_VAR_ALLPID);
 }
 std::string DsPIC::async_read(){
     std::string s("");
@@ -191,23 +259,23 @@ std::string DsPIC::async_read(){
     return s;
 }
  std::vector<uint8_t> DsPIC::readMsg(){
-	//double delayUs = 1000000 / BAUDRATE;	// T = 1/f en µs	(0.5Mbaud => 2µs)
-	
-	int foo = serialGetchar(fd);
- 	while(foo == -1){	//no reception during 10 sec
- 		//delayMicroseconds(delayUs);
- 		foo = serialGetchar(fd);
- 	}
- 	uint8_t RxSize = foo;
+    //double delayUs = 1000000 / BAUDRATE;  // T = 1/f en µs    (0.5Mbaud => 2µs)
+    
+    int foo = serialGetchar(fd);
+    while(foo == -1){   //no reception during 10 sec
+        //delayMicroseconds(delayUs);
+        foo = serialGetchar(fd);
+    }
+    uint8_t RxSize = foo;
     std::vector<uint8_t> RxBuf;
     RxBuf.push_back(RxSize);
 
-	for(int i = 0; i < RxSize; i++){
-    	foo = serialGetchar(fd);
-    	while(foo == -1){
-    		//delayMicroseconds(delayUs);
- 			foo = serialGetchar(fd);
- 		}
+    for(int i = 0; i < RxSize; i++){
+        foo = serialGetchar(fd);
+        while(foo == -1){
+            //delayMicroseconds(delayUs);
+            foo = serialGetchar(fd);
+        }
         RxBuf.push_back(foo);
         //delayMicroseconds(delayUs);
         //delayMicroseconds(5);

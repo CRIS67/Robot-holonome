@@ -119,14 +119,15 @@ void initGPIO() {
     CNENE = 0x0000;
     CNENF = 0x0000;
     CNENG = 0x0000;
-    /*
-    CNENAbits.CNIEA8 = 1;
-    CNENDbits.CNIED14 = 1;
-    CNENEbits.CNIEE14 = 1;
-    CNENEbits.CNIEE12 = 1;
-    CNENFbits.CNIEF13 = 1;
-    CNENCbits.CNIEC11 = 1;
-    */
+    
+    CNENEbits.CNIEE8 = 1;   //COD_ASS_2B
+    
+    CNENGbits.CNIEG6 = 1;   //COD_ASS_0A
+    CNENGbits.CNIEG7 = 1;   //COD_ASS_0B
+    CNENGbits.CNIEG8 = 1;   //COD_ASS_1A
+    CNENGbits.CNIEG9 = 1;   //COD_ASS_1B
+    CNENGbits.CNIEG10 = 1;  //COD_ASS_2A
+    
     /*
 #define ECHO_US_0   PORTAbits.RA8
 #define ECHO_US_1   PORTDbits.RD14
