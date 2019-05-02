@@ -29,13 +29,6 @@
 #define MASK_OPTION_RELATIVE    0x2
 #define MASK_OPTION_REVERSE     0x1
 
-#define TX_CODE_
-#define TX_CODE_
-#define TX_CODE_
-#define TX_CODE_
-#define TX_CODE_
-
-#define TX_SIZE_
 
 #define TX_CODE_VAR     1
 #define TX_CODE_LOG     2
@@ -48,6 +41,8 @@
 #define CODE_VAR_RUPT   4
 
 #define CODE_VAR_VERBOSE    5
+
+#define CODE_VAR_ARRIVED    6
 
 /*#define CODE_VAR_X_LD       6
 #define CODE_VAR_Y_LD       7
@@ -113,17 +108,23 @@
 #define CODE_VAR_WHEEL_DIAMETER1_LD             74
 #define CODE_VAR_WHEEL_DIAMETER2_LD             75
 
-#define CODE_VAR_X_LD    80
-#define CODE_VAR_Y_LD    81
-#define CODE_VAR_T_LD    82
+#define CODE_VAR_X_LD    		80
+#define CODE_VAR_Y_LD    		81
+#define CODE_VAR_T_LD    		82
 
-#define CODE_VAR_XC_LD    83
-#define CODE_VAR_YC_LD    84
-#define CODE_VAR_TC_LD    85
+#define CODE_VAR_XC_LD   		83
+#define CODE_VAR_YC_LD   		84
+#define CODE_VAR_TC_LD   		85
+		
+#define CODE_VAR_XF_LD   		86
+#define CODE_VAR_YF_LD   		87
+#define CODE_VAR_TF_LD   		88
+		
+#define CODE_VAR_VX_LD   		90
+#define CODE_VAR_VY_LD   		91
+#define CODE_VAR_TF_LD    		92
 
-#define CODE_VAR_XF_LD    86
-#define CODE_VAR_YF_LD    87
-#define CODE_VAR_TF_LD    88
+#define CODE_VAR_MODE_ASSERV    95
 
 #define VAR_8b      0
 #define VAR_16b     1
@@ -168,6 +169,7 @@ class DsPIC
         DsPIC();
         virtual ~DsPIC();
 
+		void initVarDspic();
 		void servo(uint8_t id, uint16_t value);
 		void AX12(uint8_t id, uint16_t value);
 		void motor(uint8_t id, int8_t value);
@@ -203,6 +205,7 @@ class DsPIC
 		double coef_dissymetry = 0;
 		double mm_per_tick = 0;
 		double rad_per_tick = 0;
+		uint8_t arrived = 0;
     protected:
 		int fd;
     private:
