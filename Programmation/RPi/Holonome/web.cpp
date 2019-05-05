@@ -102,7 +102,7 @@ void* thread_HandleConnnection(void *threadid){
    char msg_arr[100];
    while(1){
 	    i += 0.05;
-        w->acceptClient();
+        w->acceptClient(); // waits for server connection 
 		//printf("Connection accepted : ");
 		std::string str = w->receiveMsg();
 		const char *cmsg = str.c_str();

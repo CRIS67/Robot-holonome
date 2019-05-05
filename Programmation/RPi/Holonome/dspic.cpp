@@ -6,6 +6,32 @@ DsPIC::DsPIC(){
 DsPIC::~DsPIC(){
 
 }
+void DsPIC::initVarDspic(){    //Init PID,odometry,acceleration,speed
+    setVarDouble64b(CODE_VAR_P_SPEED_0_LD,3);
+    setVarDouble64b(CODE_VAR_P_SPEED_1_LD,3);
+    setVarDouble64b(CODE_VAR_P_SPEED_2_LD,3);
+    
+    setVarDouble64b(CODE_VAR_I_SPEED_0_LD,0);
+    setVarDouble64b(CODE_VAR_I_SPEED_1_LD,0);
+    setVarDouble64b(CODE_VAR_I_SPEED_2_LD,0);
+    
+    //setVarDouble64b(CODE_VAR_P_DISTANCE_LD,0.02);
+    //setVarDouble64b(CODE_VAR_P_DISTANCE_LD,0);
+    setVarDouble64b(CODE_VAR_P_DISTANCE_LD,0.1);
+    
+    setVarDouble64b(CODE_VAR_P_ANGLE_LD,0.05);
+    
+    setVarDouble64b(CODE_VAR_TRAJ_LIN_SPEED_LD,200);
+    setVarDouble64b(CODE_VAR_TRAJ_LIN_ACC_LD,200);
+    
+    double wheelDiameter0 = 63.8;
+    double wheelDiameter1 = 63.8;
+    double wheelDiameter2 = wheelDiameter1 * 0.95;
+    
+    setVarDouble64b(CODE_VAR_WHEEL_DIAMETER0_LD,wheelDiameter0);
+    setVarDouble64b(CODE_VAR_WHEEL_DIAMETER1_LD,wheelDiameter1);
+    setVarDouble64b(CODE_VAR_WHEEL_DIAMETER2_LD,wheelDiameter2);
+}
 void DsPIC::servo(uint8_t id, uint16_t value){
     uint8_t buffer[RX_SIZE_SERVO + 1];
     buffer[0] = RX_SIZE_SERVO;
@@ -74,6 +100,14 @@ void DsPIC::stop(){
         serialPutchar (fd, buffer[i]);
     }
 }
+
+/*
+Tells the robot to go to point(x,y) 
+    - x : x mm
+    - y : y mm
+    - rev : reverse, allows to the point in reverse (useless for holonome)
+    - relative : activates relative mode, the reference is the actual position of the robot
+*/
 void DsPIC::go(int16_t x, int16_t y,unsigned char rev, unsigned char relative){
     uint8_t option = 0;
     if(rev){
@@ -98,6 +132,13 @@ void DsPIC::go(int16_t x, int16_t y,unsigned char rev, unsigned char relative){
         serialPutchar (fd, buffer[i]);
     }
 }
+
+/*
+Tells the robot to go to point(x,y) 
+    - t : angle in degrees   
+    - rev : reverse, allows to the point in reverse (useless for holonome)
+    - relative : activates relative mode, the reference is the actual position of the robot
+*/
 void DsPIC::turn(int16_t t,unsigned char rev, unsigned char relative){
     uint8_t option = 0;
     if(rev){
@@ -121,9 +162,18 @@ void DsPIC::turn(int16_t t,unsigned char rev, unsigned char relative){
     }
 }
 void DsPIC::initPos(double x, double y, double t){
+    //init position & angle
     setVarDouble64b(CODE_VAR_X_LD,x);
     setVarDouble64b(CODE_VAR_Y_LD,y);
     setVarDouble64b(CODE_VAR_T_LD,t);
+    //set setPoint to new position
+    setVarDouble64b(CODE_VAR_XC_LD,x);
+    setVarDouble64b(CODE_VAR_YC_LD,y);
+    setVarDouble64b(CODE_VAR_TC_LD,t);
+    //set aimed point to new position
+    setVarDouble64b(CODE_VAR_XF_LD,x);
+    setVarDouble64b(CODE_VAR_YF_LD,y);
+    setVarDouble64b(CODE_VAR_TF_LD,t);
 }
 void DsPIC::setVarDouble64b(uint8_t varCode, double Var){
     double *ptrVar = &Var;
@@ -209,83 +259,27 @@ std::string DsPIC::async_read(){
     return s;
 }
  std::vector<uint8_t> DsPIC::readMsg(){
-	//double delayUs = 1000000 / BAUDRATE;	// T = 1/f en µs	(0.5Mbaud => 2µs)
-	
-	int foo = serialGetchar(fd);
- 	while(foo == -1){	//no reception during 10 sec
- 		//delayMicroseconds(delayUs);
- 		foo = serialGetchar(fd);
- 	}
- 	uint8_t RxSize = foo;
+    //double delayUs = 1000000 / BAUDRATE;  // T = 1/f en µs    (0.5Mbaud => 2µs)
+    
+    int foo = serialGetchar(fd);
+    while(foo == -1){   //no reception during 10 sec
+        //delayMicroseconds(delayUs);
+        foo = serialGetchar(fd);
+    }
+    uint8_t RxSize = foo;
     std::vector<uint8_t> RxBuf;
     RxBuf.push_back(RxSize);
 
-	for(int i = 0; i < RxSize; i++){
-    	foo = serialGetchar(fd);
-    	while(foo == -1){
-    		//delayMicroseconds(delayUs);
- 			foo = serialGetchar(fd);
- 		}
+    for(int i = 0; i < RxSize; i++){
+        foo = serialGetchar(fd);
+        while(foo == -1){
+            //delayMicroseconds(delayUs);
+            foo = serialGetchar(fd);
+        }
         RxBuf.push_back(foo);
         //delayMicroseconds(delayUs);
         //delayMicroseconds(5);
     }
 
-
-	/*double delayUs = 5;
-	int n = serialDataAvail(fd);
-	while(n < 1){
-		delayMicroseconds(delayUs);
-		n = serialDataAvail(fd);
-	}
- 	int foo = serialGetchar(fd);
- 	while(foo == -1){
- 		delayMicroseconds(delayUs);
- 		foo = serialGetchar(fd);
- 	}
-    uint8_t RxSize = foo;//serialGetchar(fd);
-    //uint8_t checksum = RxSize;
-    //uint8_t *RxBuf = (uint8_t*)(malloc(RxSize * sizeof(uint8_t)));
-    //std::vector<uint8_t> RxBuf(RxSize);
-    std::vector<uint8_t> RxBuf;
-    RxBuf.push_back(RxSize);
-	//Test1
-	n = serialDataAvail(fd);
-	while(n < RxSize){
-		delayMicroseconds(delayUs);
-		n = serialDataAvail(fd);
-	}
-    for(int i = 0; i < RxSize; i++){
-    	foo = serialGetchar(fd);
-    	while(foo == -1){
-    		delayMicroseconds(delayUs);
- 			foo = serialGetchar(fd);
- 		}
-        RxBuf.push_back(foo);
-        delayMicroseconds(delayUs);
-        //delayMicroseconds(5);
-    }*/
-	//Test2
-	/*
-	for(int i = 0; i < RxSize; i++){
-    	foo = serialGetchar(fd);
-    	while(foo == -1){
- 			foo = serialGetchar(fd);
- 		}
-        RxBuf.push_back(foo);
-        delayMicroseconds(delayUs);
-    }*/
-	//Test3
-	/*n = serialDataAvail(fd);
-	while(n < RxSize){
-		delayMicroseconds(delayUs);
-		n = serialDataAvail(fd);
-	}
-	uint8_t *RxTab = (uint8_t*)(malloc(RxSize * sizeof(uint8_t)));
-	if (read (fd, RxTab, RxSize) != RxSize)
-		puts("READ ERROR in function DsPIC::read");
-	for(int i = 0; i < RxSize; i++){
-		RxBuf.push_back(RxTab[i]);
-    }*/
     return RxBuf;
 }

@@ -752,6 +752,7 @@ void CheckMessages(){
                         break;
                     case CODE_VAR_ARRIVED:
                         sendVar8(CODE_VAR_ARRIVED,arrived);
+                        //sendLog("get_arrived\n");
                         break;
                     case CODE_VAR_BAT:{
                         double vbat = VBAT;
@@ -1119,10 +1120,10 @@ void sendVar8(uint8_t varCode, uint8_t var){
     buffer[2] = varCode;
     buffer[3] = var;
     buffer[4] = 0;
-    for(i = 0; i < TX_SIZE_VAR_32B; i++){
+    for(i = 0; i < TX_SIZE_VAR_8B; i++){
         buffer[4] += buffer[i];	//checksum
     }
-	send(buffer,TX_SIZE_VAR_32B + 1);
+	send(buffer,TX_SIZE_VAR_8B + 1);
 }
 void sendVar32(uint8_t varCode, uint32_t var){
     uint8_t  i;

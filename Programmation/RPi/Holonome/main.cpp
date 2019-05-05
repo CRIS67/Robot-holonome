@@ -5,12 +5,51 @@
 #include <queue>
 #include "web.hpp"
 #include "dspic.hpp"
+#include <thread>
+#include <mutex>
 
+
+// PIM includes 
+#include "Sockets.h"
+
+// DStarIncludes 
+#include <utility>
+#include <algorithm>
+#include <cmath>
+#include <bits/stdc++.h>
+#include <limits>
+#include <map>
+#include "mapGeneration.hpp"
+#include "dStarLite.hpp"
+#include "trajectoryHandle.hpp"
+
+//DStarGlobal 
+int mapRows {10};  
+int mapColumns {10};  
+float km {0}; 
+std::vector<std::vector<int>> mapVector;
+ 
+Node startNode = {infinity,infinity,0,std::pair<int,int>(0,0)};
+Node goalNode = {infinity,0,0,std::pair<int,int>(9,9), false};
+
+priorityList uList; // priority List
+mappedNodes knownNodes; // node the robot can see
+
+#define TX_CODE_VAR     1
+#define TX_CODE_LOG     2
+#define TX_CODE_PLOT    3
+#define CODE_VAR_X      1
+#define CODE_VAR_Y      2
+#define CODE_VAR_T      3
+#define CODE_VAR_RUPT   4
 
 void *print(void *ptr);
 
 int main()
-{
+
+{   
+
+    /*Init variables & threads*/
 	DsPIC dspic;
     pthread_t thread_print;
 
@@ -20,55 +59,42 @@ int main()
     web.startThread();
 
     int rc;
-    std::cout << "main() : creating thread, " << std::endl;
     rc = pthread_create(&thread_print, NULL, print, &web);
 
     if (rc) {
     std::cout << "Error:unable to create thread," << rc << std::endl;
     exit(-1);
     }
-    getchar();
-	
-	
-	dspic.setVar8(CODE_VAR_VERBOSE,1);
-	puts("verbose set to 1");
+
 	dspic.getVar(CODE_VAR_BAT);
-	dspic.setVarDouble64b(CODE_VAR_P_SPEED_0_LD,3);
-	dspic.setVarDouble64b(CODE_VAR_P_SPEED_1_LD,3);
-	dspic.setVarDouble64b(CODE_VAR_P_SPEED_2_LD,3);
-	
-	dspic.setVarDouble64b(CODE_VAR_I_SPEED_0_LD,0);
-	dspic.setVarDouble64b(CODE_VAR_I_SPEED_1_LD,0);
-	dspic.setVarDouble64b(CODE_VAR_I_SPEED_2_LD,0);
-	
-	//dspic.setVarDouble64b(CODE_VAR_P_DISTANCE_LD,0.02);
-	//dspic.setVarDouble64b(CODE_VAR_P_DISTANCE_LD,0);
-	dspic.setVarDouble64b(CODE_VAR_P_DISTANCE_LD,0.1);
-	
-	dspic.setVarDouble64b(CODE_VAR_P_ANGLE_LD,0.05);
-	
-	dspic.setVarDouble64b(CODE_VAR_TRAJ_LIN_SPEED_LD,400);
-	dspic.setVarDouble64b(CODE_VAR_TRAJ_LIN_ACC_LD,500);
-	
-	double wheelDiameter0 = 63.8;
-	double wheelDiameter1 = 63.8;
-	double wheelDiameter2 = wheelDiameter1 * 0.95;
-	
-	dspic.setVarDouble64b(CODE_VAR_WHEEL_DIAMETER0_LD,wheelDiameter0);
-	dspic.setVarDouble64b(CODE_VAR_WHEEL_DIAMETER1_LD,wheelDiameter1);
-	dspic.setVarDouble64b(CODE_VAR_WHEEL_DIAMETER2_LD,wheelDiameter2);
-	
+
+	dspic.initVarDspic();  //Init PID,odometry,acceleration,speed
+	dspic.initPos(320,240,0);    //initialize position & angle of the robot
 	char c = 0;
 	char started = 0;
-	
-	while(c != 's'){
+
+    puts("Robot initialized. Press enter to start...");
+    getchar();
+    
+    dspic.setVar8(CODE_VAR_VERBOSE,1);  //Allow the dspic to speak on UART channel
+    dspic.start();  //Start the motors
+    std::cout << "dspic start" << std::endl; 
+
+    /*==============PIM======================*/
+    dspic.setVarDouble64b(CODE_VAR_DISTANCE_MAX_LD,1);
+    //std::thread pimServer(Sockets::startServer,dspic); 
+    //pimServer.join(); 
+    getchar();
+
+    /*==============PIM======================*/
+	/*while(c != 's'){
 		puts("Press 's' to stop or any other button to start/stop the robot");
 		c = getchar();
 		if(c != 's'){
 			if(!started){
 				started = 1;
 				dspic.start();
-				//dspic.setVarDouble64b(CODE_VAR_TC_LD,3.14159/4);
+
 			}
 			else{
 				started = 0;
@@ -76,9 +102,10 @@ int main()
 				//dspic.setVarDouble64b(CODE_VAR_TC_LD,0);
 			}
 		}
-	}
+	}*/
 	//Test circle
-	/*double radius = 200;
+	double radius = 200;
+    dspic.initPos(1000,1500,0);
 	dspic.setVarDouble64b(CODE_VAR_DISTANCE_MAX_LD,1);	//reducing the arrival distance for more precise path following
 	dspic.setVarDouble64b(CODE_VAR_X_LD,1000+radius);
 	dspic.setVarDouble64b(CODE_VAR_Y_LD,1500);
@@ -90,16 +117,26 @@ int main()
 		dspic.setVarDouble64b(CODE_VAR_XF_LD,x);
 		dspic.setVarDouble64b(CODE_VAR_YF_LD,y);
 		delay(20);
-	}*/
+	}
 	dspic.stop();
     //dspic.initPos(1000,1500,0);
 	dspic.setVar8(CODE_VAR_VERBOSE,0);
 	puts("verbose set to 0");
+
     puts("exiting ...");
+    //pimServer.join(); 
     //pthread_exit(NULL);
+    
 
     return 0;
 }
+
+/*
+Interface between the RPI and DSPIC :
+
+Infinite loop where it waits for the messages from the dspic and it uses-it as a command for : 
+    - ...?
+*/
 void *print(void *ptr) {
    /*long tid;
    tid = (long)threadid;*/
@@ -107,12 +144,17 @@ void *print(void *ptr) {
    //DsPIC *dspic = (DsPIC*)ptr;
    DsPIC *dspic = w->dspic;
    while(1){
-        std::vector<uint8_t> msg = dspic->readMsg();
+
+        std::vector<uint8_t> msg = dspic->readMsg(); // get message from dspic 
         uint8_t checksum = 0;
         for(unsigned int i = 0; i < msg.size() - 1; i++){
             checksum += msg[i];
         }
-        if(checksum != msg[msg.size() - 1]){
+        /*
+        Last element of the message is the checksum 
+        We verify if they are the same 
+        */
+        if(checksum != msg[msg.size() - 1]){ 
             std::cout << "CHECKSUM ERROR !" << std::endl;
 			std::cout << "CE dec :";
             for(unsigned int i = 0; i < msg.size(); i++){
@@ -439,8 +481,9 @@ void *print(void *ptr) {
 									//std::cout << "Updated !" << std::endl;
                                 }
 								break;
-								
-								
+							case CODE_VAR_ARRIVED:
+                                w->dspic->arrived = msg[3];
+                                break;
                             default :
                                 std::cout << "Received wrong variable code from DsPIC : " << (int)msg[2] << std::endl;
                                 break;
