@@ -85,6 +85,11 @@ extern volatile long double rotAcc;    //rad/s^2
 
 extern volatile uint8_t arrived;
 extern volatile long double distanceMax;
+
+extern long double receivedSpeedX;
+extern long double receivedSpeedY;
+extern long double receivedSpeedT;
+extern uint8_t modeAsserv;
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="Init">
 
@@ -388,6 +393,9 @@ void CheckMessages(){
                             sendLog(itoa((int) value));
                             verbose = value;
                             break;
+                        case CODE_VAR_MODE_ASSERV:
+                            modeAsserv = value;
+                            break;
                     }
 
                 }// </editor-fold>
@@ -639,6 +647,16 @@ void CheckMessages(){
                             break;
                         case CODE_VAR_TF_LD:
                             ptr = (uint8_t*) &tf;
+                            break;
+                            
+                        case CODE_VAR_SPEED_X_LD:
+                            ptr = (uint8_t*) &receivedSpeedX;
+                            break;
+                        case CODE_VAR_SPEED_Y_LD:
+                            ptr = (uint8_t*) &receivedSpeedY;
+                            break;
+                        case CODE_VAR_SPEED_T_LD:
+                            ptr = (uint8_t*) &receivedSpeedT;
                             break;// </editor-fold>
                         // <editor-fold defaultstate="collapsed" desc="Trajectory generation">
                         case CODE_VAR_TRAJ_LIN_SPEED_LD:

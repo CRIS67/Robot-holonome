@@ -119,12 +119,12 @@
 #define CODE_VAR_XF_LD   		86
 #define CODE_VAR_YF_LD   		87
 #define CODE_VAR_TF_LD   		88
-		
-#define CODE_VAR_VX_LD   		90
-#define CODE_VAR_VY_LD   		91
-#define CODE_VAR_TF_LD    		92
 
-#define CODE_VAR_MODE_ASSERV    95
+#define CODE_VAR_MODE_ASSERV    110
+
+#define CODE_VAR_SPEED_X_LD     111
+#define CODE_VAR_SPEED_Y_LD     112
+#define CODE_VAR_SPEED_T_LD     113
 
 #define VAR_8b      0
 #define VAR_16b     1
@@ -180,6 +180,8 @@ class DsPIC
 		void setVar8(uint8_t varCode, uint8_t var);
 		void setVar32(uint8_t varCode, uint32_t var);
 		void initPos(double x, double y, double t);
+		void setSpPosition(double x, double y, double t);
+		void setSpSpeed(double vx, double vy, double vt);
 		void setVarDouble64b(uint8_t varCode, double Var);
 		void loadPID();
 		void getVar(uint8_t varCode);

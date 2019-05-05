@@ -233,6 +233,12 @@
 #define CODE_VAR_YF_LD    87
 #define CODE_VAR_TF_LD    88
 
+#define CODE_VAR_MODE_ASSERV    110
+
+#define CODE_VAR_SPEED_X_LD     111
+#define CODE_VAR_SPEED_Y_LD     112
+#define CODE_VAR_SPEED_T_LD     113
+
 /*
 extern volatile long double ticksPerTurn;
 extern volatile long double wheelDiameter;
@@ -298,6 +304,10 @@ extern volatile long double distanceCenterToWheel;*/
 
 #define N_ASSERV        20  //nombre d'itérations entre 2 boucles d'asserv'
 #define DIST_AIM_POINT  50  //distance au dessus de laquelle le robot vise le point final
+
+
+#define MODE_POSITION   0
+#define MODE_SPEED      1
 //#define SMOOTHING_FACTOR    0.2
 //#define N_SMOOTHING     5
 

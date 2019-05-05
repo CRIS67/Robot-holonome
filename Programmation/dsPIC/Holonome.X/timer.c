@@ -164,6 +164,11 @@ volatile long double commandeXDebug = 0;
 volatile long double commandeYDebug = 0;
 
 volatile long double distanceMax = 10;  //The robot is arrived at its destination if its distance to the destination point is less than this value
+
+long double receivedSpeedX = 0;
+long double receivedSpeedY = 0;
+long double receivedSpeedT = 0;
+uint8_t modeAsserv = MODE_POSITION;
 // </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="Init">
@@ -326,13 +331,24 @@ void __attribute__((interrupt, no_auto_psv)) _T1Interrupt(void) {
         commandeXDebug = commandeX;
         commandeYDebug = commandeY;
         
-        long double sc0 = -1.0 * sin(theta) * commandeX + cos(theta)*commandeY + distanceCenterToWheel * commandeT;
-        long double sc1 = -sin((PI/3) - theta) * commandeX -cos((PI/3) - theta)*commandeY + distanceCenterToWheel * commandeT;
-        long double sc2 = sin((PI/3) + theta) * commandeX - cos((PI/3) + theta)*commandeY + distanceCenterToWheel * commandeT;
+        long double speedSp0;
+        long double speedSp1;
+        long double speedSp2;
+
+        if(modeAsserv == MODE_POSITION){
+            speedSp0 = -1.0 * sin(theta) * commandeX + cos(theta)*commandeY + distanceCenterToWheel * commandeT;
+            speedSp1 = -sin((PI/3) - theta) * commandeX -cos((PI/3) - theta)*commandeY + distanceCenterToWheel * commandeT;
+            speedSp2 = sin((PI/3) + theta) * commandeX - cos((PI/3) + theta)*commandeY + distanceCenterToWheel * commandeT;
+        }
+        else if(modeAsserv == MODE_SPEED){
+            speedSp0 = -1.0 * sin(theta) * receivedSpeedX + cos(theta)*receivedSpeedY + distanceCenterToWheel * receivedSpeedT;
+            speedSp1 = -sin((PI/3) - theta) * receivedSpeedX -cos((PI/3) - theta)*receivedSpeedY + distanceCenterToWheel * receivedSpeedT;
+            speedSp2 = sin((PI/3) + theta) * receivedSpeedX - cos((PI/3) + theta)*receivedSpeedY + distanceCenterToWheel * receivedSpeedT;
+        }
         
-        setSetPoint(&pidSpeed0,sc0);
-        setSetPoint(&pidSpeed1,sc1);
-        setSetPoint(&pidSpeed2,sc2);
+        setSetPoint(&pidSpeed0,speedSp0);
+        setSetPoint(&pidSpeed1,speedSp1);
+        setSetPoint(&pidSpeed2,speedSp2);
         
         n = 0;
         long double s0 = (tick0 - saveTick0) * 50;   // % 0.02s
@@ -501,10 +517,10 @@ void __attribute__((interrupt, no_auto_psv)) _T1Interrupt(void) {
                 break;
         }// </editor-fold>
 
-        // </editor-fold>
+        
         
     }  
-}
+}// </editor-fold>
 
 /*void __attribute__((interrupt,no_auto_psv)) _T2Interrupt(void){
     IFS0bits.T2IF = 0; //Clear Timer1 interrupt flag
