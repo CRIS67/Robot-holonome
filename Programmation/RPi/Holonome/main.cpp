@@ -12,6 +12,10 @@
 // PIM includes 
 #include "Sockets.h"
 
+std::vector<double> x_coord; // Coordinates  received from odometry  
+std::vector<double> y_coord; // Coordinates  received from odometry  
+std::vector<double> t_coord; // Coordinates  received from odometry  
+
 // DStarIncludes 
 #include <utility>
 #include <algorithm>
@@ -77,14 +81,18 @@ int main()
     getchar();
     
     dspic.setVar8(CODE_VAR_VERBOSE,1);  //Allow the dspic to speak on UART channel
+    dspic.setVar8(CODE_VAR_MODE_ASSERV,1); // mode asserv vitesse 
     dspic.start();  //Start the motors
     std::cout << "dspic start" << std::endl; 
 
     /*==============PIM======================*/
     dspic.setVarDouble64b(CODE_VAR_DISTANCE_MAX_LD,1);
-    //std::thread pimServer(Sockets::startServer,dspic); 
+    std::thread pimServer(Sockets::startServer,dspic); 
     //pimServer.join(); 
+
+    puts("Press enter to STOP the server");
     getchar();
+    std::cout << x_coord.size() << " " << y_coord.size() << " " << t_coord.size() << std::endl; 
 
     /*==============PIM======================*/
 	/*while(c != 's'){
@@ -104,6 +112,7 @@ int main()
 		}
 	}*/
 	//Test circle
+        /*
 	double radius = 200;
     dspic.initPos(1000,1500,0);
 	dspic.setVarDouble64b(CODE_VAR_DISTANCE_MAX_LD,1);	//reducing the arrival distance for more precise path following
@@ -117,14 +126,14 @@ int main()
 		dspic.setVarDouble64b(CODE_VAR_XF_LD,x);
 		dspic.setVarDouble64b(CODE_VAR_YF_LD,y);
 		delay(20);
-	}
+	}*/
 	dspic.stop();
     //dspic.initPos(1000,1500,0);
 	dspic.setVar8(CODE_VAR_VERBOSE,0);
 	puts("verbose set to 0");
 
     puts("exiting ...");
-    //pimServer.join(); 
+    pimServer.join(); 
     //pthread_exit(NULL);
     
 
@@ -192,18 +201,21 @@ void *print(void *ptr) {
                                 if(msg.size() > 4){
                                     dspic->x = ((msg[3] << 8) + msg[4]);
                                     //std::cout << "received from DsPIC : x = " << dspic->x << std::endl;
+                                    x_coord.push_back(dspic->x); 
                                 }
                                 break;
                             case CODE_VAR_Y :
                                 if(msg.size() > 4){
                                     dspic->y = ((msg[3] << 8) + msg[4]);
                                     //std::cout << "received from DsPIC : y = " << dspic->y << std::endl;
+                                    y_coord.push_back(dspic->y); 
                                 }
                                 break;
                             case CODE_VAR_T :
                                 if(msg.size() > 4){
                                     dspic->t = ((msg[3] << 8) + msg[4]);
                                     //std::cout << "received from DsPIC : t = " << dspic->t << " & H = " << (int)msg[3] << " & L = " << (int)msg[4] << std::endl;
+                                    t_coord.push_back(dspic->t); 
                                 }
                             case CODE_VAR_X_LD :
                                 if(msg.size() > 8){

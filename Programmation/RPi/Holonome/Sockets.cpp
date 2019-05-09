@@ -142,6 +142,8 @@ namespace Sockets
             // Prints buffer to the console
             double x = buffer.at(0)*100 + buffer.at(1)*10 + buffer.at(2);
             double y = buffer.at(4)*100 + buffer.at(5)*10 + buffer.at(6);
+            double t = buffer.at(8)*100 + buffer.at(9)*10 + buffer.at(10);
+
             /*for(int i=0; i<buffer.size(); i++)
             {	
             	if(buffer.at(i) != ';')
@@ -152,14 +154,26 @@ namespace Sockets
 
 				
             }*/
-            x = x * 5;
-            y = y * 5;
-            std::cout << "x = " << x << " & y = " << y << std::endl;
-            dspic.setVarDouble64b(CODE_VAR_XC_LD,x);
-			dspic.setVarDouble64b(CODE_VAR_YC_LD,y);
-			dspic.setVarDouble64b(CODE_VAR_XF_LD,x);
-			dspic.setVarDouble64b(CODE_VAR_YF_LD,y);
-            //std::cout << std::endl;
+
+            x = x * 1 -320;
+            y = y * 1-240;
+            if (t <= 180) 
+              t = t/180.0; 
+            else 
+              t = (t-360)/180.0; 
+            std::cout << "x = " << x << " & y = " << y << " & t " << t  << std::endl;
+            if( x <10 && x > -10) 
+              x = 0; 
+            if ( y < 10 && y >-10) 
+              y = 0; 
+
+            dspic.setSpSpeed(x, y,t); 
+
+            //dspic.setVarDouble64b(CODE_VAR_SPEED_X,x);
+            //dspic.setVarDouble64b(CODE_VAR_SPEED_Y,y);
+            //dspic.setVarDouble64b(CODE_VAR_SPEED_T,x);
+            
+            std::cout << std::endl;
             buffer.clear();
         }
     }

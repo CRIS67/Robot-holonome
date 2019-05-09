@@ -7,9 +7,9 @@ DsPIC::~DsPIC(){
 
 }
 void DsPIC::initVarDspic(){    //Init PID,odometry,acceleration,speed
-    setVarDouble64b(CODE_VAR_P_SPEED_0_LD,3);
-    setVarDouble64b(CODE_VAR_P_SPEED_1_LD,3);
-    setVarDouble64b(CODE_VAR_P_SPEED_2_LD,3);
+    setVarDouble64b(CODE_VAR_P_SPEED_0_LD,0.05);
+    setVarDouble64b(CODE_VAR_P_SPEED_1_LD,0.05);
+    setVarDouble64b(CODE_VAR_P_SPEED_2_LD,0.05);
     
     setVarDouble64b(CODE_VAR_I_SPEED_0_LD,0);
     setVarDouble64b(CODE_VAR_I_SPEED_1_LD,0);
