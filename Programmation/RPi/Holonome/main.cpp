@@ -23,7 +23,7 @@ int mapColumns {10};
 float km {0}; 
 std::vector<std::vector<int>> mapVector;
  
-Node startNode = {infinity,infinity,0,std::pair<int,int>(0,0)};
+Node startNode = {infinity,infinity,0,std::pair<int,int>(0,0)}; // costG, costRHS, costH, coord, isObstacle, key 
 Node goalNode = {infinity,0,0,std::pair<int,int>(9,9), false};
 
 priorityList uList; // priority List
