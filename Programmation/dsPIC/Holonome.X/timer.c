@@ -164,6 +164,7 @@ volatile long double commandeXDebug = 0;
 volatile long double commandeYDebug = 0;
 
 volatile long double distanceMax = 10;  //The robot is arrived at its destination if its distance to the destination point is less than this value
+volatile long double distanceMax2 = 1;  //The robot is arrived at its destination if its distance to the destination point is less than this value
 
 long double receivedSpeedX = 0;
 long double receivedSpeedY = 0;
@@ -320,10 +321,13 @@ void __attribute__((interrupt, no_auto_psv)) _T1Interrupt(void) {
         long double alpha = 0;
         if (distancef > distanceMax){
             arrived = 0;
-            alpha = atan2l(yf-y,xf-x);
-            alphaDebug = alpha;
-            commandeX = commandeD * cosl(alpha);
-            commandeY = commandeD * sinl(alpha);
+            //alpha = atan2l(yf-y,xf-x);
+            if(distance > distanceMax2){
+                alpha = atan2l(yc-y,xc-x);
+                alphaDebug = alpha;
+                commandeX = commandeD * cosl(alpha);
+                commandeY = commandeD * sinl(alpha);
+            }
         }
         else{
             arrived = 1;

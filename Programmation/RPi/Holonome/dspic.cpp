@@ -19,9 +19,13 @@ void DsPIC::initVarDspic(){    //Init PID,odometry,acceleration,speed
     //setVarDouble64b(CODE_VAR_P_DISTANCE_LD,0);
     setVarDouble64b(CODE_VAR_P_DISTANCE_LD,0.1);
     
-    setVarDouble64b(CODE_VAR_P_ANGLE_LD,0.05);
+    setVarDouble64b(CODE_VAR_P_ANGLE_LD,0.3);
     
-    setVarDouble64b(CODE_VAR_TRAJ_LIN_SPEED_LD,200);
+    /*valeur max
+    setVarDouble64b(CODE_VAR_TRAJ_LIN_SPEED_LD,400);
+    setVarDouble64b(CODE_VAR_TRAJ_LIN_ACC_LD,250);
+    */
+    setVarDouble64b(CODE_VAR_TRAJ_LIN_SPEED_LD,300);
     setVarDouble64b(CODE_VAR_TRAJ_LIN_ACC_LD,200);
     
     double wheelDiameter0 = 63.8;

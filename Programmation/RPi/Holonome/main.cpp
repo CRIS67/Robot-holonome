@@ -69,8 +69,9 @@ int main()
 	dspic.getVar(CODE_VAR_BAT);
 
 	dspic.initVarDspic();  //Init PID,odometry,acceleration,speed
-	dspic.initPos(320,240,0);    //initialize position & angle of the robot
-	char c = 0;
+	//dspic.initPos(320,240,0);    //initialize position & angle of the robot
+	dspic.initPos(1000,1500,0); 
+    char c = 0;
 	char started = 0;
 
     puts("Robot initialized. Press enter to start...");
@@ -104,7 +105,7 @@ int main()
 		}
 	}*/
 	//Test circle
-	double radius = 200;
+	/*double radius = 200;
     dspic.initPos(1000,1500,0);
 	dspic.setVarDouble64b(CODE_VAR_DISTANCE_MAX_LD,1);	//reducing the arrival distance for more precise path following
 	dspic.setVarDouble64b(CODE_VAR_X_LD,1000+radius);
@@ -117,7 +118,7 @@ int main()
 		dspic.setVarDouble64b(CODE_VAR_XF_LD,x);
 		dspic.setVarDouble64b(CODE_VAR_YF_LD,y);
 		delay(20);
-	}
+	}*/
 	dspic.stop();
     //dspic.initPos(1000,1500,0);
 	dspic.setVar8(CODE_VAR_VERBOSE,0);
