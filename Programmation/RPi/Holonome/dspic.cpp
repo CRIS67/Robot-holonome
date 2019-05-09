@@ -175,7 +175,7 @@ void DsPIC::initPos(double x, double y, double t){
     setVarDouble64b(CODE_VAR_YF_LD,y);
     setVarDouble64b(CODE_VAR_TF_LD,t);
 }
-void setSpPosition(double x, double y, double t){
+void DsPIC::setSpPosition(double x, double y, double t){
 	setVarDouble64b(CODE_VAR_XC_LD,x);
     setVarDouble64b(CODE_VAR_YC_LD,y);
     setVarDouble64b(CODE_VAR_TC_LD,t);
@@ -185,7 +185,7 @@ void setSpPosition(double x, double y, double t){
     setVarDouble64b(CODE_VAR_YF_LD,y);
     setVarDouble64b(CODE_VAR_TF_LD,t);
 }
-void setSpSpeed(double vx, double vy, double vt){
+void DsPIC::setSpSpeed(double vx, double vy, double vt){
 	setVarDouble64b(CODE_VAR_SPEED_X_LD,vx);
     setVarDouble64b(CODE_VAR_SPEED_Y_LD,vy);
     setVarDouble64b(CODE_VAR_SPEED_T_LD,vt);

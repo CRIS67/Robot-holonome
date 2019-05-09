@@ -177,9 +177,9 @@ int main(){
     theta = 0;
     
     stop = 1;
+    pidAngle.setPoint = thetac;
     while(1){
         CheckMessages();
-        pidAngle.setPoint = thetac;
         sendPos();
         if(newPosReceived){
                 /*xf = receivedX;
@@ -192,6 +192,14 @@ int main(){
                 go(receivedX,receivedY,0,linSpeed,linAcc);
         }
         delay_ms(10);
+        plot(11,(uint32_t)(int32_t)xc);
+        plot(12,(uint32_t)(int32_t)x);
+        
+        plot(21,(uint32_t)(int32_t)yc);
+        plot(22,(uint32_t)(int32_t)y);
+        
+        //plot(31,(uint32_t)(int32_t)thetac);
+        plot(32,(uint32_t)(int32_t)(theta*1800/PI));
     }
     return 0;
 }

@@ -395,6 +395,8 @@ void CheckMessages(){
                             break;
                         case CODE_VAR_MODE_ASSERV:
                             modeAsserv = value;
+                            sendLog("modeAsserv set to ");
+                            sendLog(itoa((int) value));
                             break;
                     }
 
