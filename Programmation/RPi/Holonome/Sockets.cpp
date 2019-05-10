@@ -111,6 +111,7 @@ namespace Sockets
     int dataTreatment(SOCKET newClient, DsPIC dspic)
     {
         std::vector<unsigned char> buffer;
+        int  stopCmd = 0; 
 
         while(1){
             unsigned short expectedSize;
@@ -143,6 +144,7 @@ namespace Sockets
             double x = buffer.at(0)*100 + buffer.at(1)*10 + buffer.at(2);
             double y = buffer.at(4)*100 + buffer.at(5)*10 + buffer.at(6);
             double t = buffer.at(8)*100 + buffer.at(9)*10 + buffer.at(10);
+            stopCmd = buffer.at(11); 
 
             /*for(int i=0; i<buffer.size(); i++)
             {	
@@ -166,6 +168,7 @@ namespace Sockets
               x = 0; 
             if ( y < 10 && y >-10) 
               y = 0; 
+            std::cout << "Stop command " << stopCmd << std::endl; 
 
             dspic.setSpSpeed(x, y,t); 
 
@@ -175,6 +178,8 @@ namespace Sockets
             
             std::cout << std::endl;
             buffer.clear();
+            if(stopCmd == 49) 
+              break; 
         }
     }
 

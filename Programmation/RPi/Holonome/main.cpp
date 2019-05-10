@@ -48,6 +48,7 @@ mappedNodes knownNodes; // node the robot can see
 #define CODE_VAR_RUPT   4
 
 void *print(void *ptr);
+void loopBack( std::vector<double> xC, std::vector<double> yC, std::vector<double> tC, DsPIC dspic);  
 
 int main()
 
@@ -73,7 +74,7 @@ int main()
 	dspic.getVar(CODE_VAR_BAT);
 
 	dspic.initVarDspic();  //Init PID,odometry,acceleration,speed
-	dspic.initPos(320,240,0);    //initialize position & angle of the robot
+	dspic.initPos(0,0,0);    //initialize position & angle of the robot
 	char c = 0;
 	char started = 0;
 
@@ -92,8 +93,13 @@ int main()
 
     puts("Press enter to STOP the server");
     getchar();
-    std::cout << x_coord.size() << " " << y_coord.size() << " " << t_coord.size() << std::endl; 
+    std::cout << " X coord " <<  x_coord.size() << " Y COORD  " << y_coord.size() << " T COORD  " << t_coord.size() << std::endl; 
+    std::cout << "Mode asserv position" << std::endl; 
+    dspic.setVar8(CODE_VAR_MODE_ASSERV,0); // mode asserv position pour le loopback  
 
+    std::cout << "Press enter to start loopback" << std::endl; 
+    getchar(); 
+    loopBack(x_coord, y_coord, t_coord, dspic); 
     /*==============PIM======================*/
 	/*while(c != 's'){
 		puts("Press 's' to stop or any other button to start/stop the robot");
@@ -138,6 +144,17 @@ int main()
     
 
     return 0;
+}
+
+void loopBack( std::vector<double> xC, std::vector<double> yC, std::vector<double> tC, DsPIC dspic){
+
+  uint size = xC.size()-1; 
+
+  for( uint i = 0; i< xC.size(); i ++) {
+    std::cout << "X : " << xC.at(size-i) << " Y : " << yC.at(size-i) <<  " T : " << tC.at(size-i) << std::endl; 
+    dspic.setSpPosition(xC.at(i), yC.at(i), tC.at(i));  
+    usleep(10000); // wait 10ms 
+  }
 }
 
 /*
