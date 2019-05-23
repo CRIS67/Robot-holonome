@@ -130,7 +130,7 @@ namespace Sockets
                 int ret = recv(newClient, reinterpret_cast<char*>(&buffer[receivedSize]), (expectedSize - receivedSize) * sizeof(unsigned char), 0);
                 if ( ret <= 0 )
                 {
-                    std::cout << "Error ! Problem getting the message";
+                    std::cout << "Error ! Problem getting the message" << std::endl ;
                     buffer.clear();
                     return -2;
                 }
