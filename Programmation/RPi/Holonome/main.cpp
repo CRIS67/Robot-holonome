@@ -147,13 +147,24 @@ int main()
 }
 
 void loopBack( std::vector<double> xC, std::vector<double> yC, std::vector<double> tC, DsPIC dspic){
-
+ 
+  /* Delete copies of the coordinates */
+  for(uint i =0; i< xC.size()-1; i++)
+  {
+     if(xC.at(i) == xC.at(i+1) &&  yC.at(i) == yC.at(i+1) && tC.at(i) == tC.at(i+1)) 
+     {
+        xC.erase(xC.begin()+i);   
+        yC.erase(yC.begin()+i);   
+        tC.erase(tC.begin()+i);
+        i--; 
+     }
+  }
   uint size = xC.size()-1; 
 
   for( uint i = 0; i< xC.size(); i ++) {
     std::cout << "X : " << xC.at(size-i) << " Y : " << yC.at(size-i) <<  " T : " << tC.at(size-i) << std::endl; 
-    dspic.setSpPosition(xC.at(i), yC.at(i), tC.at(i));  
-    usleep(10000); // wait 10ms 
+    dspic.setSpPosition(xC.at(size-i), yC.at(size-i), tC.at(size-i));  
+    delay(50); // wait 50ms 
   }
 }
 
