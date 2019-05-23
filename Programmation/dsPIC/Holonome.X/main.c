@@ -152,6 +152,11 @@ extern volatile long double alphaDebug;
 extern volatile long double commandeXDebug;
 extern volatile long double commandeYDebug; // </editor-fold>
 
+
+extern long double receivedSpeedX;
+extern long double receivedSpeedY;
+extern long double receivedSpeedT;
+
 int main(){
     initClock(); //Clock 140 MHz
     initGPIO();
@@ -192,14 +197,21 @@ int main(){
                 go(receivedX,receivedY,0,linSpeed,linAcc);
         }
         delay_ms(10);
-        plot(11,(uint32_t)(int32_t)xc);
-        plot(12,(uint32_t)(int32_t)x);
+        plot(1,(uint32_t)(int32_t)(pidSpeed0.setPoint*1000));
+        plot(2,(uint32_t)(int32_t)(pidSpeed1.setPoint*1000));
+        plot(3,(uint32_t)(int32_t)(pidSpeed2.setPoint*1000));
+        plot(4,(uint32_t)(int32_t)(pidSpeed0.processVariable*1000));
+        plot(5,(uint32_t)(int32_t)(pidSpeed1.processVariable*1000));
+        plot(6,(uint32_t)(int32_t)(pidSpeed2.processVariable*1000));
         
-        plot(21,(uint32_t)(int32_t)yc);
-        plot(22,(uint32_t)(int32_t)y);
+        plot(11,(uint32_t)(int32_t)receivedSpeedX);
+        //plot(12,(uint32_t)(int32_t)x);
+        
+        plot(21,(uint32_t)(int32_t)receivedSpeedY);
+        //plot(22,(uint32_t)(int32_t)y);
         
         //plot(31,(uint32_t)(int32_t)thetac);
-        plot(32,(uint32_t)(int32_t)(theta*1800/PI));
+        plot(32,(uint32_t)(int32_t)(receivedSpeedT*1800/PI));
     }
     return 0;
 }

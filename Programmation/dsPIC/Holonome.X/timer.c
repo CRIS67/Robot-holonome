@@ -310,6 +310,7 @@ void __attribute__((interrupt, no_auto_psv)) _T1Interrupt(void) {
         }*/
         
         long double commandeD = compute(&pidDistance,-distance);
+        setSetPoint(&pidAngle,thetac);
         long double commandeT = compute(&pidAngle,theta);
         commandeD = commandeD;
         //commandeT = 0;
@@ -349,17 +350,16 @@ void __attribute__((interrupt, no_auto_psv)) _T1Interrupt(void) {
             speedSp1 = -sin((PI/3) - theta) * receivedSpeedX -cos((PI/3) - theta)*receivedSpeedY + distanceCenterToWheel * receivedSpeedT;
             speedSp2 = sin((PI/3) + theta) * receivedSpeedX - cos((PI/3) + theta)*receivedSpeedY + distanceCenterToWheel * receivedSpeedT;
         }
-        
         setSetPoint(&pidSpeed0,speedSp0);
         setSetPoint(&pidSpeed1,speedSp1);
         setSetPoint(&pidSpeed2,speedSp2);
         
         n = 0;
-        long double s0 = (tick0 - saveTick0) * 50;   // % 0.02s
+        long double s0 = (tick0 - saveTick0) * 50 * wheelDiameter0;   // % 0.02s
         saveTick0 = tick0;
-        long double s1 = (tick1 - saveTick1) * 50;   // % 0.02s
+        long double s1 = (tick1 - saveTick1) * 50 * wheelDiameter1;   // % 0.02s
         saveTick1 = tick1;
-        long double s2 = (tick2 - saveTick2) * 50;   // % 0.02s
+        long double s2 = (tick2 - saveTick2) * 50 * wheelDiameter2;   // % 0.02s
         saveTick2 = tick2;
         
         
@@ -412,7 +412,7 @@ void __attribute__((interrupt, no_auto_psv)) _T1Interrupt(void) {
         else{
             sendMotor(0,0,0);
         }
-        if(arrived){
+        if(arrived && modeAsserv == MODE_POSITION){
             sendMotor(0,0,0);
         }
             
